@@ -27,6 +27,6 @@
             android:id="@+id/btn_search"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:srcCompat="?android:attr/actionModeWebSearchDrawable" />
+            app:srcCompat="@android:drawable/btn_star_big_on" />
 
 </LinearLayout>
