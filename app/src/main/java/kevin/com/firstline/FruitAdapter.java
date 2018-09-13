@@ -1,22 +1,20 @@
 package kevin.com.firstline;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.support.annotation.NonNull;
-import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.Adapter;
-import android.widget.Toast;
+
+import org.litepal.crud.DataSupport;
 
 import java.util.List;
-import java.util.zip.Inflater;
 
 public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> {
     private static final String TAG = "FruitAdapter";
@@ -25,12 +23,12 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView image;
-        TextView name;
+        TextView desc;
 
         public ViewHolder(View view) {
             super(view);
             image = (ImageView)view.findViewById(R.id.fruit_image);
-            name = (TextView)view.findViewById(R.id.fruit_name);
+            desc = (TextView)view.findViewById(R.id.fruit_desc);
         }
     }
 
@@ -54,6 +52,30 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
 
                 MainActivity ma = ((MainActivity)context);
                 ma.getSupportFragmentManager().beginTransaction().add(R.id.main_layout, new FruitDetailFragment(f)).addToBackStack(null).commit();
+
+
+                // DON'T rely on isSaved()!!!!!
+                // save() will change the id internally!!!!
+                //Log.i(TAG, "onClick: save fruit " + f.isSaved() + f.getId() +  f.save() + f.getId());
+
+                List<Fruit> list = DataSupport.select("fid", "detail").where("fid = ?", String.format("%d", f.getFid())).find(Fruit.class);
+                for (Fruit ff:list) {
+                    Log.i(TAG, "f name " + f.getName());
+                }
+                Log.i(TAG, "onClick: " + list);
+                int match = list.size();
+                /*
+                also this works!
+                Cursor c = DataSupport.findBySQL(String.format("select fid from fruit where fid = %d", f.getFid()));
+                int match = c.getCount();
+                c.close();
+                */
+
+                Log.i(TAG, "fid already in db? " + match);
+                if (match == 0) {
+                    Log.i(TAG, "save fruit " + f.save());
+                }
+
             }
         });
         return vh;
@@ -64,7 +86,7 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
         Log.i(TAG, "onBindViewHolder: " + holder + "-" + position);
         Fruit f = fruits.get(position);
         holder.image.setImageResource(f.getImageId());
-        holder.name.setText(f.getName() + "\n" + f.getId());
+        holder.desc.setText(f.getName() + "\n" + f.getDetail() + "\n" + f.getPrice() + "\n" + f.getFid());
     }
 
     @Override

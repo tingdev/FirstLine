@@ -3,9 +3,21 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="kevin.com.firstline">
 
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <permission
+        android:name="com.kevin.permission.broadcast_send_to_specified_target"
+        android:protectionLevel="normal" />
+    <uses-permission android:name="com.kevin.permission.broadcast_send_to_specified_target"/>
     
+    <permission android:name="com.kevin.permission.broadcast_send_from_specified_source"
+        android:protectionLevel="normal"/>
+    <uses-permission android:name="com.kevin.permission.broadcast_send_from_specified_source"/>
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <application
+        android:name="org.litepal.LitePalApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -25,10 +37,16 @@
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-                <category android:name="android.intent.category.HOME"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <category android:name="android.intent.category.HOME" />
             </intent-filter>
         </receiver>
+
+        <provider
+            android:name=".FruitsProvider"
+            android:authorities="kevin.com.firstline.provider"
+            android:enabled="true"
+            android:exported="true"></provider>
     </application>
 
 </manifest>

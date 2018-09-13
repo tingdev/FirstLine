@@ -29,7 +29,7 @@ public class FruitDetailFragment extends Fragment {
         iv.setImageResource(f.getImageId());
 
         tv = view.findViewById(R.id.f_detail);
-        tv.setText(f.getId() + "");
+        tv.setText(f.getFid() + "");
         return view;
     }
 

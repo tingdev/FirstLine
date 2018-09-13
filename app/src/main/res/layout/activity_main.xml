@@ -33,8 +33,22 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="right">
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/call_phone"
+            android:text="Call"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/view_contacts"
+            android:text="Contacts"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
         <Button
             android:id="@+id/reset_fruit"
             android:layout_width="wrap_content"
@@ -47,5 +61,6 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:text="Add Fruit" />
+
     </LinearLayout>
 </LinearLayout>
