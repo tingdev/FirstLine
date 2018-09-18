@@ -2,12 +2,15 @@ package kevin.com.firstline;
 
 import android.app.Activity;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.AttributeSet;
@@ -56,7 +59,18 @@ public class MyTitleLayout extends LinearLayout {
                 //   by tracking the log, you can find it!!!!
                 PendingIntent pi = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
-                Notification n = new NotificationCompat.Builder(context, null)
+                String channelId = "1234";
+
+                // if build version >= 26, we MUST create a NotificationChannel to show the notifications!
+                // if build version < 26, NotificationChannel is NOT supported, will cause crash, thus we determine the version here!
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    NotificationChannel nc = new NotificationChannel(channelId, "fruitschannel", NotificationManager.IMPORTANCE_MAX);
+                    nc.enableLights(true);
+                    nc.setLightColor(Color.BLUE);
+                    nm.createNotificationChannel(nc);
+                }
+
+                Notification n = new NotificationCompat.Builder(context, channelId)
                         .setContentTitle("NotificationTitle")
                         .setContentText("NotificationText")
                         .setContentInfo("NotificationInfo")
@@ -64,6 +78,8 @@ public class MyTitleLayout extends LinearLayout {
                         .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.banana))
                         .setContentIntent(pi)
                         .setAutoCancel(true)
+                        .setNumber(3)
+                        .setBadgeIconType(Notification.BADGE_ICON_LARGE)
                         .build();
                 nm.notify(1, n);
             }
