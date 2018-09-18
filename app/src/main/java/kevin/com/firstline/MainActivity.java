@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                 //lbm.sendBroadcast(i);
             }
         });
-/*
+
         // the one with the higher priority would receive the broadcast first.
         IntentFilter inf = new IntentFilter("kevin.com.action.ADD_FRUIT");
         inf.setPriority(200);
@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         anotherInf.setPriority(100);
         registerReceiver(anotherReceiver, anotherInf);
         LocalBroadcastManager.getInstance(this).registerReceiver(anotherReceiver, inf);
-*/
+
         LitePal.getDatabase();
 
         Button callBtn = findViewById(R.id.call_phone);
@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                 }
             }
         });
-
+        Log.i("MainActivity", "my task id " + getTaskId());
         Log.i(TAG, "trace onCreate:  end");
     }
 
@@ -290,6 +290,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "onDestroy: ");
+
         unregisterReceiver(broadcastReceiver);
         unregisterReceiver(anotherReceiver);
         LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(broadcastReceiver);

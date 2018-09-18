@@ -6,12 +6,14 @@
     <permission
         android:name="com.kevin.permission.broadcast_send_to_specified_target"
         android:protectionLevel="normal" />
-    <uses-permission android:name="com.kevin.permission.broadcast_send_to_specified_target"/>
-    
-    <permission android:name="com.kevin.permission.broadcast_send_from_specified_source"
-        android:protectionLevel="normal"/>
-    <uses-permission android:name="com.kevin.permission.broadcast_send_from_specified_source"/>
 
+    <uses-permission android:name="com.kevin.permission.broadcast_send_to_specified_target" />
+
+    <permission
+        android:name="com.kevin.permission.broadcast_send_from_specified_source"
+        android:protectionLevel="normal" />
+
+    <uses-permission android:name="com.kevin.permission.broadcast_send_from_specified_source" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -24,7 +26,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity
+            android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -38,6 +41,7 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+
                 <category android:name="android.intent.category.HOME" />
             </intent-filter>
         </receiver>
@@ -46,7 +50,12 @@
             android:name=".FruitsProvider"
             android:authorities="kevin.com.firstline.provider"
             android:enabled="true"
-            android:exported="true"></provider>
+            android:exported="true" />
+
+        <activity android:name=".NotificationContentDetailActivity"
+            android:taskAffinity="com.kevin.broadcastreceiver">
+
+        </activity>
     </application>
 
 </manifest>
