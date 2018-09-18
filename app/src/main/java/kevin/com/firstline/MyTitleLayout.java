@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
@@ -70,7 +71,7 @@ public class MyTitleLayout extends LinearLayout {
                     nm.createNotificationChannel(nc);
                 }
 
-                Notification n = new NotificationCompat.Builder(context, channelId)
+                NotificationCompat.Builder nb = new NotificationCompat.Builder(context, channelId)
                         .setContentTitle("NotificationTitle")
                         .setContentText("NotificationText")
                         .setContentInfo("NotificationInfo")
@@ -80,8 +81,8 @@ public class MyTitleLayout extends LinearLayout {
                         .setAutoCancel(true)
                         .setNumber(3)
                         .setBadgeIconType(Notification.BADGE_ICON_LARGE)
-                        .build();
-                nm.notify(1, n);
+                        .setStyle(new NotificationCompat.BigPictureStyle().bigPicture(BitmapFactory.decodeResource(getResources(),R.drawable.banana)));
+                nm.notify(1, nb.build());
             }
         });
     }
