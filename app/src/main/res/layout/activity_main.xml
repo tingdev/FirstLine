@@ -9,6 +9,11 @@
     android:id="@+id/main_layout"
     >
 
+    <LinearLayout
+        android:id="@+id/frag_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"></LinearLayout>
+
     <TextView
         android:id="@+id/sample_text"
         android:layout_width="wrap_content"
@@ -30,10 +35,12 @@
         android:scrollbars="vertical"
         />
 
+
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@color/colorKevinGreenB">
         <Button
             android:id="@+id/call_phone"
             android:text="Call"
@@ -45,10 +52,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
         <Button
             android:id="@+id/reset_fruit"
             android:layout_width="wrap_content"
@@ -61,6 +64,19 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:text="Add Fruit" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorKevinGreen">
+        <Button
+            android:id="@+id/take_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Take Photo" />
+
 
     </LinearLayout>
 </LinearLayout>

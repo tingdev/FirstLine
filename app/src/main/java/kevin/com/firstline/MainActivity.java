@@ -12,11 +12,17 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
+import android.os.PersistableBundle;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -31,6 +37,7 @@ import android.widget.Toast;
 
 import org.litepal.LitePal;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -40,6 +47,11 @@ import static android.Manifest.permission.CALL_PHONE;
 public class MainActivity extends AppCompatActivity  implements  ContactsFragment.OnFragmentInteractionListener{
     private static final String TAG = "MainActivity";
     private FruitRecyclerView frv;
+
+    private static final int TAKE_PHOTO = 1;
+    private Uri imageUri;
+    private boolean onSaveInstanceState;
+    private boolean showPhotoLater;
 
     // Used to load the 'native-lib' library on application startup.
     static {
@@ -167,8 +179,40 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                 }
             }
         });
+
+        Button btnTakePhoto = findViewById(R.id.take_photo);
+        btnTakePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                takePhoto();
+            }
+        });
+
         Log.i("MainActivity", "my task id " + getTaskId());
         Log.i(TAG, "trace onCreate:  end");
+    }
+
+    private void takePhoto() {
+        File imageFile = new File(getExternalCacheDir(), "photo.jpg");
+        try {
+            if (imageFile.exists()) {
+                imageFile.delete();
+            }
+            imageFile.createNewFile();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (Build.VERSION.SDK_INT >= 24) {
+            imageUri = FileProvider.getUriForFile(this, "kevin.com.firstline.fileprovider", imageFile);
+        } else {
+            imageUri = Uri.fromFile(imageFile);
+        }
+
+        Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+        startActivityForResult(intent, TAKE_PHOTO);
+
     }
 
     private List<Contact> readContacts() {
@@ -261,13 +305,62 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     }
 
     @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.i(TAG, "onRestart: ");
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.i(TAG, "onRestoreInstanceState: ");
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState, PersistableBundle persistentState) {
+        super.onRestoreInstanceState(savedInstanceState, persistentState);
+        Log.i(TAG, "onRestoreInstanceState: ");
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        if (showPhotoLater) {
+            try {
+                Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
+                getSupportFragmentManager().beginTransaction().replace(R.id.frag_container, new PhotoFragment().setPhoto(bitmap)).addToBackStack(null).commit();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            onSaveInstanceState = false;
+            showPhotoLater = false;
+        }
+        Log.i(TAG, "onResume: ");
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+        //super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case TAKE_PHOTO:
+                if (resultCode == RESULT_OK) {
+                    try {
+                        if (onSaveInstanceState) {
+
+                            // This will cause 'Can not perform this action after onSaveInstanceState' error!
+                            /*
+                            Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
+                            getSupportFragmentManager().beginTransaction().replace(R.id.main_layout, new PhotoFragment().setPhoto(bitmap)).addToBackStack(null).commit();
+                            */
+
+                            showPhotoLater = true;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+        }
     }
 
     @Override
@@ -278,6 +371,14 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        onSaveInstanceState = true;
+        Log.i(TAG, "onSaveInstanceState: ");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.i(TAG, "onPause: ");
     }
 
     @Override
