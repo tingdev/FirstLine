@@ -215,6 +215,31 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case TAKE_PHOTO:
+                if (resultCode == RESULT_OK) {
+                    try {
+                        if (onSaveInstanceState) {
+
+                            // This will cause 'Can not perform this action after onSaveInstanceState' error!
+                            /*
+                            Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
+                            getSupportFragmentManager().beginTransaction().replace(R.id.main_layout, new PhotoFragment().setPhoto(bitmap)).addToBackStack(null).commit();
+                            */
+
+                            showPhotoLater = true;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                break;
+        }
+    }
+
     private List<Contact> readContacts() {
         List<Contact> ls = new ArrayList<Contact>();
         Cursor cs = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
@@ -336,31 +361,6 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
             showPhotoLater = false;
         }
         Log.i(TAG, "onResume: ");
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        //super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case TAKE_PHOTO:
-                if (resultCode == RESULT_OK) {
-                    try {
-                        if (onSaveInstanceState) {
-
-                            // This will cause 'Can not perform this action after onSaveInstanceState' error!
-                            /*
-                            Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
-                            getSupportFragmentManager().beginTransaction().replace(R.id.main_layout, new PhotoFragment().setPhoto(bitmap)).addToBackStack(null).commit();
-                            */
-
-                            showPhotoLater = true;
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-                break;
-        }
     }
 
     @Override
