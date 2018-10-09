@@ -6,6 +6,7 @@ import android.app.ActivityManager;
 import android.app.FragmentManager;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -18,6 +19,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.PersistableBundle;
 import android.provider.ContactsContract;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -36,6 +38,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.litepal.LitePal;
+import org.w3c.dom.Document;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -43,15 +46,23 @@ import java.util.List;
 import java.util.Random;
 
 import static android.Manifest.permission.CALL_PHONE;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class MainActivity extends AppCompatActivity  implements  ContactsFragment.OnFragmentInteractionListener{
     private static final String TAG = "MainActivity";
     private FruitRecyclerView frv;
 
+    private static final int REQUEST_PERMISSION_CODE_CALL_PHONE = 1;
+    private static final int REQUEST_PERMISSION_CODE_READ_CONTACTS = 2;
+    private static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE = 3;
+
     private static final int TAKE_PHOTO = 1;
+    private static final int CHOOSE_PHOTO = 2;
     private Uri imageUri;
     private boolean onSaveInstanceState;
     private boolean showPhotoLater;
+
+    private Bitmap photoBitmap = null;
 
     // Used to load the 'native-lib' library on application startup.
     static {
@@ -161,7 +172,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
             public void onClick(View view) {
                 if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CALL_PHONE)
                         != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CALL_PHONE}, 1);
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CALL_PHONE}, REQUEST_PERMISSION_CODE_CALL_PHONE);
                 } else {
                     call(Uri.parse("tel:13819193687"));
                 }
@@ -173,7 +184,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
             @Override
             public void onClick(View view) {
                 if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, 2);
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, REQUEST_PERMISSION_CODE_READ_CONTACTS);
                 } else {
                     showContacts(readContacts());
                 }
@@ -185,6 +196,18 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
             @Override
             public void onClick(View view) {
                 takePhoto();
+            }
+        });
+
+        Button btnChooseFromAlbum = findViewById(R.id.choose_from_album);
+        btnChooseFromAlbum.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (ContextCompat.checkSelfPermission(MainActivity.this, WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE);
+                } else {
+                    openAlbum();
+                }
             }
         });
 
@@ -215,6 +238,12 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
     }
 
+    private void openAlbum() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(intent, CHOOSE_PHOTO);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         //super.onActivityResult(requestCode, resultCode, data);
@@ -231,14 +260,73 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                             */
 
                             showPhotoLater = true;
+                            photoBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
                 break;
+            case CHOOSE_PHOTO:
+                String imagePath = null;
+                if (resultCode == RESULT_OK) {
+                    if (Build.VERSION.SDK_INT >= 19) {
+                        imagePath = getImagePathOnOrAfterKitKat(data);
+                    } else {
+                        imagePath = getImagePathBeforeKitKat(data);
+                    }
+
+                    if (imagePath != null) {
+                        if (onSaveInstanceState) {
+                            showPhotoLater = true;
+                            photoBitmap = BitmapFactory.decodeFile(imagePath);
+                        }
+                    }
+                }
+                break;
         }
     }
+
+    private String getImagePathOnOrAfterKitKat(Intent data) {
+        // data example: "content://com.android.providers.media.documents/document/image:1867767 flag=0x1", NOT a String, it's the inside information!!!
+        String imagePath = null;
+        Uri uri = data.getData();   // uri:  "content://com.android.providers.media.documents/document/image%3A1867767"
+        if (DocumentsContract.isDocumentUri(this, uri)) {
+            String docId = DocumentsContract.getDocumentId(uri);        //example:  "image:186776"
+            if ("com.android.providers.media.documents".equals(uri.getAuthority())) {
+                String id = docId.split(":")[1];
+                String selection = MediaStore.Images.Media._ID + "=" + id;      // "_id=186776"
+                imagePath = getImagePath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, selection);  // "/storage/emulated/0/Pictures/Screenshots/Screenshot_20181007-131113.jpg"
+            } else if ("com.android.providers.downloads.documents".equals(uri.getAuthority())) {
+                Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.valueOf(docId));
+                imagePath = getImagePath(contentUri, null);
+            }
+        } else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            imagePath = getImagePath(uri, null);
+        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            imagePath = uri.getPath();
+        }
+        return imagePath;
+    }
+
+    private String getImagePathBeforeKitKat(Intent data) {
+        Uri uri = data.getData();
+        return getImagePath(uri, null);
+    }
+
+    private String getImagePath(Uri uri, String selection) {
+        String path = null;
+        Cursor cursor = getContentResolver().query(uri, null, selection, null, null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+            }
+            cursor.close();
+        }
+        return path;
+    }
+
+
 
     private List<Contact> readContacts() {
         List<Contact> ls = new ArrayList<Contact>();
@@ -268,7 +356,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
-            case 1: {
+            case REQUEST_PERMISSION_CODE_CALL_PHONE: {
                 boolean called = false;
                 for (int i = 0; i < grantResults.length; i++) {
                     if ((permissions[i].equals(Manifest.permission.CALL_PHONE)) && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
@@ -283,7 +371,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                 }
                 break;
             }
-            case 2: {
+            case REQUEST_PERMISSION_CODE_READ_CONTACTS: {
                 boolean viewed = false;
                 for (int i = 0; i < grantResults.length; i++) {
                     if ((permissions[i].equals(Manifest.permission.READ_CONTACTS)) && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
@@ -295,6 +383,14 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
                 if (!viewed) {
                     Toast.makeText(MainActivity.this, "You're Not permitted to view contacts!", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            }
+            case REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    openAlbum();
+                } else {
+                    Toast.makeText(this, "You denied the permission", Toast.LENGTH_SHORT).show();
                 }
                 break;
             }
@@ -352,8 +448,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         super.onResume();
         if (showPhotoLater) {
             try {
-                Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
-                getSupportFragmentManager().beginTransaction().replace(R.id.frag_container, new PhotoFragment().setPhoto(bitmap)).addToBackStack(null).commit();
+                showPhoto(photoBitmap);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -361,6 +456,10 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
             showPhotoLater = false;
         }
         Log.i(TAG, "onResume: ");
+    }
+
+    private void showPhoto(Bitmap bitmap) {
+        getSupportFragmentManager().beginTransaction().replace(R.id.frag_container, new PhotoFragment().setPhoto(bitmap)).addToBackStack(null).commit();
     }
 
     @Override

@@ -2,12 +2,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".MainActivity"
-    android:id="@+id/main_layout"
-    >
+    tools:context=".MainActivity">
 
     <LinearLayout
         android:id="@+id/frag_container"
@@ -32,25 +31,26 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:scrollbars="vertical"
-        />
+        android:scrollbars="vertical" />
 
 
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorKevinGreenB">
+        android:background="@color/colorKevinGreenB"
+        android:orientation="horizontal">
+
         <Button
             android:id="@+id/call_phone"
-            android:text="Call"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:text="Call" />
+
         <Button
             android:id="@+id/view_contacts"
-            android:text="Contacts"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:text="Contacts" />
 
         <Button
             android:id="@+id/reset_fruit"
@@ -71,12 +71,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorKevinGreen">
+
         <Button
             android:id="@+id/take_photo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Take Photo" />
 
+        <Button
+            android:id="@+id/choose_from_album"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="From Album" />
 
     </LinearLayout>
 </LinearLayout>
