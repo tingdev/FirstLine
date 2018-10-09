@@ -228,8 +228,21 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
             }
         });
 
+        Button btnWebView = findViewById(R.id.webview);
+        btnWebView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openWebPage();
+            }
+        });
+
         Log.i("MainActivity", "my task id " + getTaskId());
         Log.i(TAG, "trace onCreate:  end");
+    }
+
+    private void openWebPage() {
+        WebViewFragment wvf = new WebViewFragment("https://www.sogou.com");
+        getSupportFragmentManager().beginTransaction().add(R.id.main_layout, wvf).addToBackStack(null).commit();
     }
 
     private void playAudio() {
