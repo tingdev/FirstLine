@@ -84,5 +84,11 @@
             android:layout_height="wrap_content"
             android:text="From Album" />
 
+        <Button
+            android:id="@+id/play_audio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Play" />
+
     </LinearLayout>
 </LinearLayout>

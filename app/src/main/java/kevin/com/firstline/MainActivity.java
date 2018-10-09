@@ -1,22 +1,19 @@
 package kevin.com.firstline;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.FragmentManager;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.os.PersistableBundle;
 import android.provider.ContactsContract;
 import android.provider.DocumentsContract;
@@ -32,20 +29,17 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.litepal.LitePal;
-import org.w3c.dom.Document;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static android.Manifest.permission.CALL_PHONE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class MainActivity extends AppCompatActivity  implements  ContactsFragment.OnFragmentInteractionListener{
@@ -54,7 +48,8 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
     private static final int REQUEST_PERMISSION_CODE_CALL_PHONE = 1;
     private static final int REQUEST_PERMISSION_CODE_READ_CONTACTS = 2;
-    private static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE = 3;
+    private static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_ALBUM = 3;
+    private static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_AUDIO = 4;
 
     private static final int TAKE_PHOTO = 1;
     private static final int CHOOSE_PHOTO = 2;
@@ -63,6 +58,9 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     private boolean showPhotoLater;
 
     private Bitmap photoBitmap = null;
+
+    private MediaPlayer audioPlayer = new MediaPlayer();
+
 
     // Used to load the 'native-lib' library on application startup.
     static {
@@ -204,15 +202,54 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
             @Override
             public void onClick(View v) {
                 if (ContextCompat.checkSelfPermission(MainActivity.this, WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE);
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_ALBUM);
                 } else {
                     openAlbum();
                 }
             }
         });
 
+        final Button btnPlayAudio = findViewById(R.id.play_audio);
+        audioPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                btnPlayAudio.setText("PLAY");
+            }
+        });
+
+        btnPlayAudio.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (ContextCompat.checkSelfPermission(MainActivity.this, WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_AUDIO);
+                } else {
+                    playAudio();
+                }
+            }
+        });
+
         Log.i("MainActivity", "my task id " + getTaskId());
         Log.i(TAG, "trace onCreate:  end");
+    }
+
+    private void playAudio() {
+        Button btnPlayAudio = findViewById(R.id.play_audio);
+        if (audioPlayer.isPlaying()) {
+            audioPlayer.reset();
+            btnPlayAudio.setText("PLAY");
+            return;
+        }
+
+        try {
+            File file = new File(Environment.getExternalStorageDirectory(), "music.mp3");
+            audioPlayer.reset();            // this is IMPORTANT for the second PLAY!   1st PLAY -- PLAY end -- 2nd PLAY
+            audioPlayer.setDataSource(file.getPath());
+            audioPlayer.prepare();
+            audioPlayer.start();
+            btnPlayAudio.setText("STOP");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void takePhoto() {
@@ -386,9 +423,17 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                 }
                 break;
             }
-            case REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE: {
+            case REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_ALBUM: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     openAlbum();
+                } else {
+                    Toast.makeText(this, "You denied the permission", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            }
+            case REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_AUDIO: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    playAudio();
                 } else {
                     Toast.makeText(this, "You denied the permission", Toast.LENGTH_SHORT).show();
                 }
@@ -495,6 +540,8 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         unregisterReceiver(anotherReceiver);
         LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(broadcastReceiver);
         LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(anotherReceiver);
+
+        audioPlayer.release();
     }
 
     @Override
