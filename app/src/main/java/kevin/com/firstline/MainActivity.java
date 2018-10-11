@@ -19,6 +19,7 @@ import android.provider.ContactsContract;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
@@ -33,12 +34,33 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import org.litepal.LitePal;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.FormBody;
+import okhttp3.Headers;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okio.BufferedSink;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
@@ -236,8 +258,63 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
             }
         });
 
+        tryXmlParser();
+        tryGsonParser();
+        tryOkHttp();
+
         Log.i("MainActivity", "my task id " + getTaskId());
         Log.i(TAG, "trace onCreate:  end");
+    }
+
+    private void tryXmlParser() {
+        // imcompleted xml parser code
+        try {
+            XmlPullParser xpp = XmlPullParserFactory.newInstance().newPullParser();
+            SAXParser sp = SAXParserFactory.newInstance().newSAXParser();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void tryGsonParser() {
+        // imcompleted gson parser code
+        //Gson gson = new Gson();
+        //List<Object> o = gson.fromJson("{'key':'value'}", new TypeToken<List<Object>>(){}.getType());    // REPLACE Object with the real CLASS!!!
+    }
+
+    private void tryOkHttp() {
+
+        // simple OkHttpClient sample
+        //RequestBody reqBody = new FormBody.Builder().add("name", "kevin").add("id", "1111").build();
+        //RequestBody reqBody = RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"), "name=kevin&id=1111"); // same as FormBody above!
+        //RequestBody reqBody = RequestBody.create(MediaType.parse("text/plain; charset=utf-8"), "name=kevin&id=1111");   // treat it as plain text
+
+        // Use the imgur image upload API as documented at https://api.imgur.com/endpoints/image
+        MultipartBody reqBody = new MultipartBody.Builder("AaB03x")
+                .setType(MultipartBody.FORM)             // "Content-Type: multipart/form-data; boundary=AaB03x"
+                .addPart(
+                        Headers.of("Content-Disposition", "form-data; name=\"title\""),
+                        RequestBody.create(null, "Square Logo"))
+                .addPart(
+                        Headers.of("Content-Disposition", "form-data; name=\"image\""),
+                        RequestBody.create(MediaType.parse("image/png"), new File(Environment.getExternalStorageDirectory(), "toupload.png")))
+                .build();
+
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url("http://192.168.3.157:4444/src/")
+                .post(reqBody)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                Log.i(TAG, "onResponse: " + response.body().string());
+            }
+        });
     }
 
     private void openWebPage() {
