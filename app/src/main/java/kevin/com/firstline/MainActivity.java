@@ -12,9 +12,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.os.PersistableBundle;
+import android.os.SystemClock;
 import android.provider.ContactsContract;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
@@ -31,6 +33,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -83,11 +86,59 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
     private MediaPlayer audioPlayer = new MediaPlayer();
 
+    private TextView pgl;
+    private ProgressBar pgb;
 
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");
     }
+
+    class playAudioProgressTask extends AsyncTask<Integer, Integer, Boolean> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            pgb.setProgress(values[0]);
+            pgl.setText(values[0] + "/" + values[1]);
+        }
+
+        @Override
+        protected Boolean doInBackground(Integer... params) {
+            int max = params[0];
+            pgb.setMax(max);
+            //SystemClock.sleep(100);
+            while (audioPlayer.isPlaying()) {
+                int save = 0;
+                int current = audioPlayer.getCurrentPosition();
+                if ((current % 100 == 0) && current > save) {
+                    onProgressUpdate(current, max);
+                    save = current;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+        }
+
+        @Override
+        protected void onCancelled(Boolean aBoolean) {
+            super.onCancelled(aBoolean);
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+        }
+    }
+
 
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -235,7 +286,21 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         audioPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                btnPlayAudio.setText("PLAY");
+                int current = audioPlayer.getCurrentPosition();   // WOW! this is NOT reliable now.
+                final int duration = audioPlayer.getDuration();
+                if (current >= duration) {
+                    current = duration;
+                }
+
+                final int realCurrent = current;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        btnPlayAudio.setText("PLAY");
+                        pgl.setText(String.format("%d/%d", realCurrent, duration));
+                        pgb.setProgress(realCurrent);
+                    }
+                });
             }
         });
 
@@ -261,6 +326,9 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         tryXmlParser();
         tryGsonParser();
         tryOkHttp();
+
+        pgb = findViewById(R.id.progressBar);
+        pgl = findViewById(R.id.progressLabel);
 
         Log.i("MainActivity", "my task id " + getTaskId());
         Log.i(TAG, "trace onCreate:  end");
@@ -336,6 +404,9 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
             audioPlayer.setDataSource(file.getPath());
             audioPlayer.prepare();
             audioPlayer.start();
+            int duration = audioPlayer.getDuration();
+            new playAudioProgressTask().execute(duration);
+
             btnPlayAudio.setText("STOP");
         } catch (Exception e) {
             e.printStackTrace();
@@ -452,8 +523,6 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         }
         return path;
     }
-
-
 
     private List<Contact> readContacts() {
         List<Contact> ls = new ArrayList<Contact>();
