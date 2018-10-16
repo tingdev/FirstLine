@@ -2,10 +2,12 @@ package kevin.com.firstline;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -15,6 +17,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
+import android.os.IBinder;
 import android.os.PersistableBundle;
 import android.os.SystemClock;
 import android.provider.ContactsContract;
@@ -85,9 +88,13 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     private Bitmap photoBitmap = null;
 
     private MediaPlayer audioPlayer = new MediaPlayer();
+    private int audioDuration;
+    private int currentBeforeStop;
 
     private TextView pgl;
     private ProgressBar pgb;
+
+    private ServiceConnection serviceConn;
 
     // Used to load the 'native-lib' library on application startup.
     static {
@@ -286,19 +293,12 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         audioPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                int current = audioPlayer.getCurrentPosition();   // WOW! this is NOT reliable now.
-                final int duration = audioPlayer.getDuration();
-                if (current >= duration) {
-                    current = duration;
-                }
-
-                final int realCurrent = current;
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         btnPlayAudio.setText("PLAY");
-                        pgl.setText(String.format("%d/%d", realCurrent, duration));
-                        pgb.setProgress(realCurrent);
+                        pgl.setText(String.format("%d/%d", currentBeforeStop, audioDuration));
+                        pgb.setProgress(currentBeforeStop);
                     }
                 });
             }
@@ -329,6 +329,59 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
         pgb = findViewById(R.id.progressBar);
         pgl = findViewById(R.id.progressLabel);
+
+        Button btnStartService = findViewById(R.id.start_service);
+        btnStartService.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startService(new Intent(MainActivity.this, MyService.class));
+            }
+        });
+
+        Button btnStopService = findViewById(R.id.stop_service);
+        btnStopService.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopService(new Intent(MainActivity.this, MyService.class));
+            }
+        });
+
+        Button btnBindService = findViewById(R.id.bind_service);
+        btnBindService.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                serviceConn = new ServiceConnection() {
+                    @Override
+                    public void onServiceConnected(ComponentName name, IBinder service) {
+                        Log.i(TAG, "onServiceConnected: ");
+                        MyService.DownloadBinder db = (MyService.DownloadBinder)service;
+                        db.start();
+                        db.getProgress();
+                        Log.i(TAG, "onServiceConnected: command end");
+                    }
+
+                    @Override
+                    public void onServiceDisconnected(ComponentName name) {
+                        Log.i(TAG, "onServiceDisconnected: ");
+                    }
+                };
+
+                bindService(new Intent(MainActivity.this, MyService.class), serviceConn, BIND_AUTO_CREATE);
+                Log.i(TAG, "onClick: bindservice");
+            }
+        });
+
+        Button btnUnbindService = findViewById(R.id.unbind_service);
+        btnUnbindService.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (serviceConn != null) {
+                    unbindService(serviceConn);
+                    serviceConn = null;
+                }
+                Log.i(TAG, "onClick: unbindService");
+            }
+        });
 
         Log.i("MainActivity", "my task id " + getTaskId());
         Log.i(TAG, "trace onCreate:  end");
@@ -393,6 +446,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     private void playAudio() {
         Button btnPlayAudio = findViewById(R.id.play_audio);
         if (audioPlayer.isPlaying()) {
+            currentBeforeStop = audioPlayer.getCurrentPosition();
             audioPlayer.reset();
             btnPlayAudio.setText("PLAY");
             return;
@@ -404,8 +458,9 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
             audioPlayer.setDataSource(file.getPath());
             audioPlayer.prepare();
             audioPlayer.start();
-            int duration = audioPlayer.getDuration();
-            new playAudioProgressTask().execute(duration);
+            audioDuration = audioPlayer.getDuration();
+            currentBeforeStop = audioDuration;      // in case user doesn't STOP actively(i.e. STOP due to play end).
+            new playAudioProgressTask().execute(audioDuration);
 
             btnPlayAudio.setText("STOP");
         } catch (Exception e) {
