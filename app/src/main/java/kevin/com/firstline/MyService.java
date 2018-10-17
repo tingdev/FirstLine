@@ -14,7 +14,12 @@ public class MyService extends Service {
     public class DownloadBinder extends Binder {
         public void start() {
             Log.i(TAG, "start: downloading...");
-            SystemClock.sleep(2000);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    SystemClock.sleep(2000);
+                }
+            }).start();
         }
 
         public int getProgress() {
