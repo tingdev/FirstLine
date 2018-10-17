@@ -86,7 +86,7 @@
 
         <Button
             android:id="@+id/play_audio"
-            android:layout_width="wrap_content"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
             android:text="Play" />
 
@@ -118,25 +118,31 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <Button
-            android:id="@+id/start_service"
+        <CheckBox
+            android:id="@+id/is_forground_check_box"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="FG" />
+
+        <Button
+            android:id="@+id/start_service"
+            android:layout_width="70dp"
+            android:layout_height="40dp"
             android:text="Start" />
         <Button
             android:id="@+id/stop_service"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="70dp"
+            android:layout_height="40dp"
             android:text="Stop" />
         <Button
             android:id="@+id/bind_service"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="70dp"
+            android:layout_height="40dp"
             android:text="Bind" />
         <Button
             android:id="@+id/unbind_service"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="80dp"
+            android:layout_height="40dp"
             android:text="Unbind" />
     </LinearLayout>
 

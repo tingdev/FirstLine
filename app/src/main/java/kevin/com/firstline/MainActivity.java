@@ -36,6 +36,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -95,6 +97,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     private ProgressBar pgb;
 
     private ServiceConnection serviceConn;
+    private boolean isForgroundService;
 
     // Used to load the 'native-lib' library on application startup.
     static {
@@ -330,10 +333,20 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         pgb = findViewById(R.id.progressBar);
         pgl = findViewById(R.id.progressLabel);
 
+        CheckBox isfgcb = findViewById(R.id.is_forground_check_box);
+        isForgroundService = isfgcb.isChecked();
+        isfgcb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                isForgroundService = isChecked;
+            }
+        });
+
         Button btnStartService = findViewById(R.id.start_service);
         btnStartService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                MyService.setForground(isForgroundService);
                 startService(new Intent(MainActivity.this, MyService.class));
             }
         });
@@ -350,21 +363,24 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         btnBindService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                serviceConn = new ServiceConnection() {
-                    @Override
-                    public void onServiceConnected(ComponentName name, IBinder service) {
-                        Log.i(TAG, "onServiceConnected: ");
-                        MyService.DownloadBinder db = (MyService.DownloadBinder)service;
-                        db.start();
-                        db.getProgress();
-                        Log.i(TAG, "onServiceConnected: command end");
-                    }
+                MyService.setForground(isForgroundService);
+                if (serviceConn == null) {
+                    serviceConn = new ServiceConnection() {
+                        @Override
+                        public void onServiceConnected(ComponentName name, IBinder service) {
+                            Log.i(TAG, "onServiceConnected: ");
+                            MyService.DownloadBinder db = (MyService.DownloadBinder) service;
+                            db.start();
+                            db.getProgress();
+                            Log.i(TAG, "onServiceConnected: command end");
+                        }
 
-                    @Override
-                    public void onServiceDisconnected(ComponentName name) {
-                        Log.i(TAG, "onServiceDisconnected: ");
-                    }
-                };
+                        @Override
+                        public void onServiceDisconnected(ComponentName name) {
+                            Log.i(TAG, "onServiceDisconnected: ");
+                        }
+                    };
+                }
 
                 bindService(new Intent(MainActivity.this, MyService.class), serviceConn, BIND_AUTO_CREATE);
                 Log.i(TAG, "onClick: bindservice");
