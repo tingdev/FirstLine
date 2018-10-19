@@ -59,6 +59,13 @@ public class MyService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "onStartCommand: MyService");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                SystemClock.sleep(2000);
+                //stopSelf();       // can stop the service automatically after task processed.  another solution is using IntentService
+            }
+        }).start();
         return super.onStartCommand(intent, flags, startId);
     }
 
