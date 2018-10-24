@@ -71,6 +71,11 @@
             android:name=".MyService"
             android:enabled="true"
             android:exported="true"></service>
+
+
+        <service android:name=".DownloadService"
+            android:enabled="true"
+            android:exported="true"/>
     </application>
 
 </manifest>

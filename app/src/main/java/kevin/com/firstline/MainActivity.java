@@ -19,12 +19,10 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.PersistableBundle;
-import android.os.SystemClock;
 import android.provider.ContactsContract;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
@@ -42,15 +40,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
 import org.litepal.LitePal;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.Permission;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -60,7 +56,6 @@ import javax.xml.parsers.SAXParserFactory;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.FormBody;
 import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -68,7 +63,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okio.BufferedSink;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
@@ -80,6 +74,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     private static final int REQUEST_PERMISSION_CODE_READ_CONTACTS = 2;
     private static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_ALBUM = 3;
     private static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_AUDIO = 4;
+    private static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_DOWNLOAD = 5;
 
     private static final int TAKE_PHOTO = 1;
     private static final int CHOOSE_PHOTO = 2;
@@ -98,6 +93,10 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
     private ServiceConnection serviceConn;
     private boolean isForgroundService;
+
+    DownloadService.DownloadBinder downloadBinder = null;
+    //private String DOWNLOAD_URL = "https://raw.githubusercontent.com/guolindev/eclipse/master/eclipse-inst-win64.exe";
+    private String DOWNLOAD_URL = "https://raw.githubusercontent.com/tuqinkui/first/master/wireshark.exe";
 
     // Used to load the 'native-lib' library on application startup.
     static {
@@ -369,7 +368,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                         @Override
                         public void onServiceConnected(ComponentName name, IBinder service) {
                             Log.i(TAG, "onServiceConnected: ");
-                            MyService.DownloadBinder db = (MyService.DownloadBinder) service;
+                            MyService.MockBinder db = (MyService.MockBinder) service;
                             db.start();
                             db.getProgress();
                             Log.i(TAG, "onServiceConnected: command end");
@@ -669,6 +668,12 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                 }
                 break;
             }
+            case REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_DOWNLOAD: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    launchDownloadService();
+                }
+                break;
+            }
             default:
                 break;
         }
@@ -695,9 +700,42 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
             case R.id.remove_item:
                 Toast.makeText(MainActivity.this, "Remove clicked!", Toast.LENGTH_SHORT).show();
                 break;
+            case R.id.update:
+                startDownload();
+                break;
         }
         return true;
 
+    }
+
+    private void startDownload() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_DOWNLOAD);
+        } else {
+            launchDownloadService();
+        }
+    }
+
+    private ServiceConnection downloadSc = null;
+    Intent downloadIntent;
+    private void launchDownloadService() {
+
+        downloadIntent = new Intent(this, DownloadService.class);
+        downloadSc = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                downloadBinder = (DownloadService.DownloadBinder)service;
+                downloadBinder.start(DOWNLOAD_URL);
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+
+            }
+        };
+
+        startService(downloadIntent);       // this is very IMPORTANT!!! this ensures the service always run even if the main activity exits!!!!!
+        bindService(downloadIntent, downloadSc, BIND_AUTO_CREATE);
     }
 
     @Override
@@ -770,6 +808,12 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         unregisterReceiver(anotherReceiver);
         LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(broadcastReceiver);
         LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(anotherReceiver);
+
+        if (downloadSc != null) {
+            //stopService(downloadIntent);      //do NOT stop download service here!  we should keep service running!!!
+            unbindService(downloadSc);
+            downloadSc = null;
+        }
 
         audioPlayer.release();
     }

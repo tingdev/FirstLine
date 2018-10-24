@@ -13,15 +13,14 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
 public class MyService extends Service {
     private static String TAG = "MyService";
     private static boolean isfg = false;
 
-    private DownloadBinder mBinder = new DownloadBinder();
-    public class DownloadBinder extends Binder {
+    private MockBinder mBinder = new MockBinder();
+    public class MockBinder extends Binder {
         public void start() {
             Log.i(TAG, "start: downloading...");
             new Thread(new Runnable() {
@@ -62,8 +61,11 @@ public class MyService extends Service {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                SystemClock.sleep(2000);
-                //stopSelf();       // can stop the service automatically after task processed.  another solution is using IntentService
+                while (true) {
+                    SystemClock.sleep(1000);
+                    //stopSelf();       // can stop the service automatically after task processed.  another solution is using IntentService
+                    Log.i(TAG, "run: inside onStartCommand");
+                }
             }
         }).start();
         return super.onStartCommand(intent, flags, startId);
