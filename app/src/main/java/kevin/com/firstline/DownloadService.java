@@ -174,7 +174,8 @@ public class DownloadService extends Service implements DownloadInterface {
                 /*
                   .setContentTitle("Update")
                 */
-                .setContent(remoteViews)
+                .setCustomBigContentView(remoteViews)       // big content view respects the wrap_content setting
+                .setCustomContentView(remoteViews)
                 .build();
         return n;
     }
