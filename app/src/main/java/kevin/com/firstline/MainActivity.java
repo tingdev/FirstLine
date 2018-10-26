@@ -40,6 +40,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.baidu.mapapi.map.MapView;
+
 import org.litepal.LitePal;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -75,6 +77,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     private static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_ALBUM = 3;
     private static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_AUDIO = 4;
     private static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_DOWNLOAD = 5;
+    private static final int REQUEST_PERMISSION_CODE_LOCATION = 6;
 
     private static final int TAKE_PHOTO = 1;
     private static final int CHOOSE_PHOTO = 2;
@@ -674,6 +677,23 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                 }
                 break;
             }
+            case REQUEST_PERMISSION_CODE_LOCATION: {
+                if (grantResults.length > 0) {
+                    boolean allGranted = true;
+                    for (int result: grantResults) {
+                        if (result != PackageManager.PERMISSION_GRANTED) {
+                            allGranted = false;
+                            break;
+                        }
+                    }
+                    if (allGranted) {
+                        startLocation();
+                    }
+                } else {
+                    Log.w(TAG, "onRequestPermissionsResult: " + grantResults.length );
+                }
+                break;
+            }
             default:
                 break;
         }
@@ -683,6 +703,49 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     public void onFruitRecyclerViewCreated(FruitRecyclerView v) {
         Log.i(TAG, "onFruitRecyclerViewCreated: " + v);
         frv = v;
+    }
+
+    private boolean requestLocationPermissions() {
+        List<String> locationPermissions = new ArrayList<String>();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            locationPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            locationPermissions.add(Manifest.permission.READ_PHONE_STATE);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            locationPermissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
+
+        if (!locationPermissions.isEmpty()) {
+            String[] permissions = locationPermissions.toArray(new String[locationPermissions.size()]);
+            ActivityCompat.requestPermissions(this, permissions, REQUEST_PERMISSION_CODE_LOCATION);
+            return true;
+        }
+        return false;
+    }
+
+    private void startLocation() {
+        MyLocation.getInstance(this).start(mapview.getMap());
+    }
+
+    private void stopLocation() {
+        MyLocation.getInstance(this).stop();
+    }
+
+    public void onBDMapBtnClicked() {
+        BaiDuMapFragment bdmf = new BaiDuMapFragment(this);
+        getSupportFragmentManager().beginTransaction().replace(R.id.main_layout, bdmf).addToBackStack(null).commit();
+    }
+
+    private MapView mapview;
+    public void onBaiDuMapViewCreated(MapView mv) {
+        this.mapview = mv;
+        if (!requestLocationPermissions()) {
+            startLocation();
+        }
     }
 
     @Override
@@ -759,6 +822,10 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     @Override
     protected void onResume() {
         super.onResume();
+        if (mapview != null) {
+            mapview.onResume();
+        }
+
         if (showPhotoLater) {
             try {
                 showPhoto(photoBitmap);
@@ -791,6 +858,9 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     protected void onPause() {
         super.onPause();
         Log.i(TAG, "onPause: ");
+        if (mapview != null) {
+            mapview.onPause();
+        }
     }
 
     @Override
@@ -803,6 +873,10 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "onDestroy: ");
+        if (mapview != null) {
+            mapview.onDestroy();
+        }
+        stopLocation();
 
         unregisterReceiver(broadcastReceiver);
         unregisterReceiver(anotherReceiver);

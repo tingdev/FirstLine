@@ -13,6 +13,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -38,6 +39,7 @@ public class MyTitleLayout extends LinearLayout {
         LayoutInflater.from(context).inflate(R.layout.custom_title, this);
         ImageButton back = (ImageButton)findViewById(R.id.btn_back);
         ImageButton search = (ImageButton)findViewById(R.id.btn_search);
+        Button bdmap = (Button)findViewById(R.id.btn_bdmap);
         back.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -49,6 +51,14 @@ public class MyTitleLayout extends LinearLayout {
 
             }
         });
+
+        bdmap.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((MainActivity)context).onBDMapBtnClicked();
+            }
+        });
+
         search.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
