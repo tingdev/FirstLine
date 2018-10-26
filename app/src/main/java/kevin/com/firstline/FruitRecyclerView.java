@@ -23,7 +23,7 @@ public class FruitRecyclerView extends RecyclerView {
         Log.i(TAG, "trace FruitRecyclerView: ctor");
     }
 
-    FruitRecyclerView(Context context, AttributeSet attrs) {
+    public FruitRecyclerView(Context context, AttributeSet attrs) {
         super(context, attrs);
         Log.i(TAG, "trace FruitRecyclerView: ctor with attrs");
         Fruits.init();
