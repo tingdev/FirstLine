@@ -34,6 +34,7 @@ public class MyLocation {
             LocationClientOption option = new LocationClientOption();
             option.setScanSpan(5000);
             option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
+            option.setCoorType("bd09ll");       // this is vary important! to coordinated MUST be transformed.
             mClient.setLocOption(option);
         }
         return m;
