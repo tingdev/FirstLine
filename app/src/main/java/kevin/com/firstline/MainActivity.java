@@ -1,6 +1,7 @@
 package kevin.com.firstline;
 
 import android.Manifest;
+import android.app.ActionBar;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentUris;
@@ -28,6 +29,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -103,6 +106,8 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     DownloadService.DownloadBinder downloadBinder = null;
     //private String DOWNLOAD_URL = "https://raw.githubusercontent.com/guolindev/eclipse/master/eclipse-inst-win64.exe";
     private String DOWNLOAD_URL = "https://raw.githubusercontent.com/tuqinkui/first/master/wireshark.exe";
+
+    private DrawerLayout drawerLayout;
 
     // Used to load the 'native-lib' library on application startup.
     static {
@@ -193,6 +198,14 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         // ONLY for kevinTheme
         android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        drawerLayout = findViewById(R.id.drawer_layout);
+
+        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(R.drawable.menu);
+        }
 
         // Example of a call to a native method
         TextView tv = (TextView) findViewById(R.id.sample_text);
@@ -772,6 +785,9 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                 break;
             case R.id.update:
                 startDownload();
+                break;
+            case android.R.id.home:
+                drawerLayout.openDrawer(GravityCompat.START);
                 break;
         }
         return true;
