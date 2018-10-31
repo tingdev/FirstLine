@@ -21,7 +21,9 @@ import android.provider.ContactsContract;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
@@ -33,6 +35,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
@@ -191,6 +194,20 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                         break;
                 }
                 return false;
+            }
+        });
+
+        FloatingActionButton fab = findViewById(R.id.floating_action_button);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Snackbar.make(v, "Add Fruit?", Snackbar.LENGTH_SHORT)
+                        .setAction("ADD", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                onAddFruit();
+                            }
+                        }).show();
             }
         });
 
