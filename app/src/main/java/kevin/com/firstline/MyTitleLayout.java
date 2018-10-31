@@ -1,31 +1,23 @@
 package kevin.com.firstline;
 
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.TypedArray;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.Toast;
-
-import java.util.jar.Attributes;
 
 public class MyTitleLayout extends LinearLayout {
     static final String TAG = "MyTitleLayout";
@@ -55,7 +47,7 @@ public class MyTitleLayout extends LinearLayout {
         bdmap.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((MainActivity)context).onBDMapBtnClicked();
+                ((MainActivity)context).openBaiduMapPage();
             }
         });
 

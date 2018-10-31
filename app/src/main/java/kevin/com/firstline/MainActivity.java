@@ -1,7 +1,6 @@
 package kevin.com.firstline;
 
 import android.Manifest;
-import android.app.ActionBar;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentUris;
@@ -10,13 +9,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
@@ -25,6 +21,7 @@ import android.provider.ContactsContract;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
@@ -34,17 +31,12 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
 import com.baidu.mapapi.map.MapView;
 
@@ -54,7 +46,6 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.Permission;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -81,7 +72,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     private static final int REQUEST_PERMISSION_CODE_CALL_PHONE = 1;
     private static final int REQUEST_PERMISSION_CODE_READ_CONTACTS = 2;
     private static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_ALBUM = 3;
-    private static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_AUDIO = 4;
+    public static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_AUDIO = 4;
     private static final int REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_DOWNLOAD = 5;
     private static final int REQUEST_PERMISSION_CODE_LOCATION = 6;
 
@@ -93,16 +84,6 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
     private Bitmap photoBitmap = null;
 
-    private MediaPlayer audioPlayer = new MediaPlayer();
-    private int audioDuration;
-    private int currentBeforeStop;
-
-    private TextView pgl;
-    private ProgressBar pgb;
-
-    private ServiceConnection serviceConn;
-    private boolean isForgroundService;
-
     DownloadService.DownloadBinder downloadBinder = null;
     //private String DOWNLOAD_URL = "https://raw.githubusercontent.com/guolindev/eclipse/master/eclipse-inst-win64.exe";
     private String DOWNLOAD_URL = "https://raw.githubusercontent.com/tuqinkui/first/master/wireshark.exe";
@@ -113,52 +94,6 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     static {
         System.loadLibrary("native-lib");
     }
-
-    class playAudioProgressTask extends AsyncTask<Integer, Integer, Boolean> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            pgb.setProgress(values[0]);
-            pgl.setText(values[0] + "/" + values[1]);
-        }
-
-        @Override
-        protected Boolean doInBackground(Integer... params) {
-            int max = params[0];
-            pgb.setMax(max);
-            //SystemClock.sleep(100);
-            while (audioPlayer.isPlaying()) {
-                int save = 0;
-                int current = audioPlayer.getCurrentPosition();
-                if ((current % 100 == 0) && current > save) {
-                    onProgressUpdate(current, max);
-                    save = current;
-                }
-            }
-            return true;
-        }
-
-        @Override
-        protected void onCancelled() {
-            super.onCancelled();
-        }
-
-        @Override
-        protected void onCancelled(Boolean aBoolean) {
-            super.onCancelled(aBoolean);
-        }
-
-        @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            super.onPostExecute(aBoolean);
-        }
-    }
-
 
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -195,64 +130,67 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
         setContentView(R.layout.activity_main);
 
+        // Example of a call to a native method
+        TextView tv = (TextView) findViewById(R.id.sample_text);
+        tv.setText(stringFromJNI());
+
         // ONLY for kevinTheme
         android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        drawerLayout = findViewById(R.id.drawer_layout);
-
         android.support.v7.app.ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.drawable.menu);
         }
 
-        // Example of a call to a native method
-        TextView tv = (TextView) findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
+        drawerLayout = findViewById(R.id.drawer_layout);
 
-        if (getActionBar()!=null) {
-            getActionBar().hide();
-        }
-
-        Button resetFruit = (Button) findViewById(R.id.reset_fruit);
-        resetFruit.setOnClickListener(new View.OnClickListener() {
+        final NavigationView navView = findViewById(R.id.nav_view);
+        navView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
-            public void onClick(View view) {
-                Fruits.init();
-                frv.notifyDataSetChanged();
-
-                LitePal.deleteDatabase("fruits");
-
-                Intent i = new Intent("kevin.com.action.RESET_FRUIT");
-                sendBroadcast(i, "com.kevin.permission.broadcast_send_from_specified_source");
-
-            }
-        });
-
-        Button addFruit = (Button) findViewById(R.id.add_fruit);
-        addFruit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                int rand = new Random().nextInt(Fruits.getFruits().size());
-                Fruit selected = Fruits.getFruits().get(rand);
-
-                Fruit n = new Fruit(Fruits.getFruits().size(), selected.getImageId(), selected.getName(), selected.getDetail(), selected.getPrice());
-                Fruits.getFruits().add(n);
-
-                frv.notifyItemInserted(Fruits.getFruits().size() - 1);
-
-                // broadcast and ordered broadcast, local broadcast tests.
-                Intent i = new Intent("kevin.com.action.ADD_FRUIT");
-                sendBroadcast(i, "com.kevin.permission.broadcast_send_to_specified_target");
-                //sendBroadcast(i);
-
-                //i.putExtra("isOrdered", true);
-                //sendOrderedBroadcast(i, null);      // the receiver with the intentfield of higher priority would receive the broadcast first.
-
-                //LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(MainActivity.this);
-                //i.putExtra("isLocal", true);
-                //lbm.sendBroadcast(i);
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.nv_reset_fruit:
+                        onResetFruit();
+                        break;
+                    case R.id.nv_add_fruit:
+                        onAddFruit();
+                        break;
+                    case R.id.nv_show_baidu_map:
+                        navView.setCheckedItem(R.id.nv_show_baidu_map);
+                        openBaiduMapPage();
+                        drawerLayout.closeDrawers();
+                        break;
+                    case R.id.nv_make_call:
+                        makeCall();
+                        drawerLayout.closeDrawers();
+                        break;
+                    case R.id.nv_contacts:
+                        viewContacts();
+                        drawerLayout.closeDrawers();
+                        break;
+                    case R.id.nv_take_photo:
+                        takePhoto();
+                        drawerLayout.closeDrawers();
+                        break;
+                    case R.id.nv_from_album:
+                        selectFromAlbum();
+                        drawerLayout.closeDrawers();
+                        break;
+                    case R.id.nv_play_audio:
+                        openPlayAudioPage();
+                        drawerLayout.closeDrawers();
+                        break;
+                    case R.id.nv_show_webview:
+                        openWebPage();
+                        drawerLayout.closeDrawers();
+                        break;
+                    case R.id.nv_service:
+                        openServiceTestPage();
+                        drawerLayout.closeDrawers();
+                        break;
+                }
+                return false;
             }
         });
 
@@ -269,157 +207,9 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
         LitePal.getDatabase();
 
-        Button callBtn = findViewById(R.id.call_phone);
-        callBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CALL_PHONE)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CALL_PHONE}, REQUEST_PERMISSION_CODE_CALL_PHONE);
-                } else {
-                    call(Uri.parse("tel:13819193687"));
-                }
-            }
-        });
-
-        Button viewContacts = findViewById(R.id.view_contacts);
-        viewContacts.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, REQUEST_PERMISSION_CODE_READ_CONTACTS);
-                } else {
-                    showContacts(readContacts());
-                }
-            }
-        });
-
-        Button btnTakePhoto = findViewById(R.id.take_photo);
-        btnTakePhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                takePhoto();
-            }
-        });
-
-        Button btnChooseFromAlbum = findViewById(R.id.choose_from_album);
-        btnChooseFromAlbum.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(MainActivity.this, WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_ALBUM);
-                } else {
-                    openAlbum();
-                }
-            }
-        });
-
-        final Button btnPlayAudio = findViewById(R.id.play_audio);
-        audioPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        btnPlayAudio.setText("PLAY");
-                        pgl.setText(String.format("%d/%d", currentBeforeStop, audioDuration));
-                        pgb.setProgress(currentBeforeStop);
-                    }
-                });
-            }
-        });
-
-        btnPlayAudio.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(MainActivity.this, WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_AUDIO);
-                } else {
-                    playAudio();
-                }
-            }
-        });
-
-        Button btnWebView = findViewById(R.id.webview);
-        btnWebView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openWebPage();
-            }
-        });
-
         tryXmlParser();
         tryGsonParser();
         tryOkHttp();
-
-        pgb = findViewById(R.id.progressBar);
-        pgl = findViewById(R.id.progressLabel);
-
-        CheckBox isfgcb = findViewById(R.id.is_forground_check_box);
-        isForgroundService = isfgcb.isChecked();
-        isfgcb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                isForgroundService = isChecked;
-            }
-        });
-
-        Button btnStartService = findViewById(R.id.start_service);
-        btnStartService.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MyService.setForground(isForgroundService);
-                startService(new Intent(MainActivity.this, MyService.class));
-            }
-        });
-
-        Button btnStopService = findViewById(R.id.stop_service);
-        btnStopService.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopService(new Intent(MainActivity.this, MyService.class));
-            }
-        });
-
-        Button btnBindService = findViewById(R.id.bind_service);
-        btnBindService.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MyService.setForground(isForgroundService);
-                if (serviceConn == null) {
-                    serviceConn = new ServiceConnection() {
-                        @Override
-                        public void onServiceConnected(ComponentName name, IBinder service) {
-                            Log.i(TAG, "onServiceConnected: ");
-                            MyService.MockBinder db = (MyService.MockBinder) service;
-                            db.start();
-                            db.getProgress();
-                            Log.i(TAG, "onServiceConnected: command end");
-                        }
-
-                        @Override
-                        public void onServiceDisconnected(ComponentName name) {
-                            Log.i(TAG, "onServiceDisconnected: ");
-                        }
-                    };
-                }
-
-                bindService(new Intent(MainActivity.this, MyService.class), serviceConn, BIND_AUTO_CREATE);
-                Log.i(TAG, "onClick: bindservice");
-            }
-        });
-
-        Button btnUnbindService = findViewById(R.id.unbind_service);
-        btnUnbindService.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (serviceConn != null) {
-                    unbindService(serviceConn);
-                    serviceConn = null;
-                }
-                Log.i(TAG, "onClick: unbindService");
-            }
-        });
 
         Log.i("MainActivity", "my task id " + getTaskId());
         Log.i(TAG, "trace onCreate:  end");
@@ -476,34 +266,78 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         });
     }
 
+    private void onResetFruit() {
+        Fruits.init();
+        frv.notifyDataSetChanged();
+
+        LitePal.deleteDatabase("fruits");
+
+        Intent i = new Intent("kevin.com.action.RESET_FRUIT");
+        sendBroadcast(i, "com.kevin.permission.broadcast_send_from_specified_source");
+    }
+
+    private void onAddFruit() {
+        int rand = new Random().nextInt(Fruits.getFruits().size());
+        Fruit selected = Fruits.getFruits().get(rand);
+
+        Fruit n = new Fruit(Fruits.getFruits().size(), selected.getImageId(), selected.getName(), selected.getDetail(), selected.getPrice());
+        Fruits.getFruits().add(n);
+
+        frv.notifyItemInserted(Fruits.getFruits().size() - 1);
+
+        // broadcast and ordered broadcast, local broadcast tests.
+        Intent i = new Intent("kevin.com.action.ADD_FRUIT");
+        sendBroadcast(i, "com.kevin.permission.broadcast_send_to_specified_target");
+        //sendBroadcast(i);
+
+        //i.putExtra("isOrdered", true);
+        //sendOrderedBroadcast(i, null);      // the receiver with the intentfield of higher priority would receive the broadcast first.
+
+        //LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(MainActivity.this);
+        //i.putExtra("isLocal", true);
+        //lbm.sendBroadcast(i);
+
+    }
+
+    private void makeCall() {
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CALL_PHONE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CALL_PHONE}, REQUEST_PERMISSION_CODE_CALL_PHONE);
+        } else {
+            call(Uri.parse("tel:13819193687"));
+        }
+    }
+
+    private void viewContacts(){
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, REQUEST_PERMISSION_CODE_READ_CONTACTS);
+        } else {
+            showContacts(readContacts());
+        }
+    }
+
+    private void selectFromAlbum(){
+        if (ContextCompat.checkSelfPermission(MainActivity.this, WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_ALBUM);
+        } else {
+            openAlbum();
+        }
+    }
+
+    private void openPlayAudioPage() {
+        PlayAudioFragment paf = new PlayAudioFragment();
+        getSupportFragmentManager().beginTransaction().replace(R.id.main_layout, paf).addToBackStack(null).commit();
+    }
+
     private void openWebPage() {
         WebViewFragment wvf = new WebViewFragment("https://www.sogou.com");
         getSupportFragmentManager().beginTransaction().add(R.id.main_layout, wvf).addToBackStack(null).commit();
     }
 
-    private void playAudio() {
-        Button btnPlayAudio = findViewById(R.id.play_audio);
-        if (audioPlayer.isPlaying()) {
-            currentBeforeStop = audioPlayer.getCurrentPosition();
-            audioPlayer.reset();
-            btnPlayAudio.setText("PLAY");
-            return;
-        }
-
-        try {
-            File file = new File(Environment.getExternalStorageDirectory(), "music.mp3");
-            audioPlayer.reset();            // this is IMPORTANT for the second PLAY!   1st PLAY -- PLAY end -- 2nd PLAY
-            audioPlayer.setDataSource(file.getPath());
-            audioPlayer.prepare();
-            audioPlayer.start();
-            audioDuration = audioPlayer.getDuration();
-            currentBeforeStop = audioDuration;      // in case user doesn't STOP actively(i.e. STOP due to play end).
-            new playAudioProgressTask().execute(audioDuration);
-
-            btnPlayAudio.setText("STOP");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void openServiceTestPage() {
+        ServiceTestFragment stf = new ServiceTestFragment();
+        stf.setContext(this);
+        getSupportFragmentManager().beginTransaction().replace(R.id.main_layout, stf).addToBackStack(null).commit();
     }
 
     private void takePhoto() {
@@ -685,7 +519,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
             }
             case REQUEST_PERMISSION_CODE_WRITE_EXTERNAL_STORAGE_FOR_OPEN_AUDIO: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    playAudio();
+                    AudioPlayer.getInstance(MainActivity.this).togglePlayAudio();
                 } else {
                     Toast.makeText(this, "You denied the permission", Toast.LENGTH_SHORT).show();
                 }
@@ -755,7 +589,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         MyLocation.getInstance(this).stop();
     }
 
-    public void onBDMapBtnClicked() {
+    public void openBaiduMapPage() {
         BaiDuMapFragment bdmf = new BaiDuMapFragment(this);
         getSupportFragmentManager().beginTransaction().replace(R.id.main_layout, bdmf).addToBackStack(null).commit();
     }
@@ -845,6 +679,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     @Override
     protected void onResume() {
         super.onResume();
+
         if (mapview != null) {
             mapview.onResume();
         }
@@ -862,7 +697,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     }
 
     private void showPhoto(Bitmap bitmap) {
-        getSupportFragmentManager().beginTransaction().replace(R.id.frag_container, new PhotoFragment().setPhoto(bitmap)).addToBackStack(null).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.main_layout, new PhotoFragment().setPhoto(bitmap)).addToBackStack(null).commit();
     }
 
     @Override
@@ -912,7 +747,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
             downloadSc = null;
         }
 
-        audioPlayer.release();
+        AudioPlayer.getInstance(MainActivity.this).release();
     }
 
     @Override

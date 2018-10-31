@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="all">
+        <item android:title="Fruits Control">
+            <menu>
+                <item
+                    android:id="@+id/nv_reset_fruit"
+                    android:title="reset fruit"
+                    android:icon="@drawable/menu"/>
+                <item
+                    android:id="@+id/nv_add_fruit"
+                    android:title="add fruit"
+                    android:icon="@drawable/menu"/>
+            </menu>
+        </item>
+    </group>
+
+    <group android:checkableBehavior="all">
+        <item  android:title="PHONE">
+            <menu>
+                <item
+                    android:id="@+id/nv_make_call"
+                    android:title="make call"
+                    android:icon="@drawable/menu"/>
+                <item
+                    android:id="@+id/nv_contacts"
+                    android:title="contacts"
+                    android:icon="@drawable/menu"/>
+            </menu>
+        </item>
+    </group>
+
+    <group android:checkableBehavior="all">
+        <item android:title="CAMERA">
+            <menu>
+                <item android:id="@+id/nv_take_photo"
+                    android:title="take photo"
+                    android:icon="@drawable/menu"/>
+                <item android:id="@+id/nv_from_album"
+                    android:title="from album"
+                    android:icon="@drawable/menu"/>
+            </menu>
+        </item>
+    </group>
+
+    <group android:checkableBehavior="all">
+        <item android:title="MISC">
+            <menu>
+                <item android:id="@+id/nv_show_baidu_map"
+                    android:title="BAIDU MAP"
+                    android:icon="@drawable/menu"/>
+                <item android:id="@+id/nv_play_audio"
+                    android:title="PLAY AUDIO"
+                    android:icon="@drawable/menu"/>
+                <item android:id="@+id/nv_show_webview"
+                    android:title="SHOW WEBVIEW"
+                    android:icon="@drawable/menu"/>
+                <item android:id="@+id/nv_service"
+                    android:title="SERVICE"
+                    android:icon="@drawable/menu"/>
+            </menu>
+        </item>
+    </group>
+
+</menu>

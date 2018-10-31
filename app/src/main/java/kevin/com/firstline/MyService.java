@@ -61,10 +61,11 @@ public class MyService extends Service {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true) {
+                int i = 10;
+                while (i-- > 0) {
                     SystemClock.sleep(1000);
                     //stopSelf();       // can stop the service automatically after task processed.  another solution is using IntentService
-                    Log.i(TAG, "run: inside onStartCommand");
+                    Log.i(TAG, "run: inside onStartCommand" + i);
                 }
             }
         }).start();

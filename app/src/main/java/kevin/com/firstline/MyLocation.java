@@ -42,7 +42,7 @@ public class MyLocation {
 
     private void navigateTo(BaiduMap map, BDLocation location) {
         if (isFirstTime) {
-            map.animateMapStatus(MapStatusUpdateFactory.zoomTo(15f));
+            map.animateMapStatus(MapStatusUpdateFactory.zoomTo(19f));
             isFirstTime = false;
         }
 
@@ -75,8 +75,12 @@ public class MyLocation {
     }
 
     public void stop() {
-        map.setMyLocationEnabled(false);
-        mClient.stop();
+        if (map != null) {
+            map.setMyLocationEnabled(false);
+        }
+        if (mClient != null) {
+            mClient.stop();
+        }
         Log.i(TAG, "stop: ");
     }
 
