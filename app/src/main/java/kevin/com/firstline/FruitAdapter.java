@@ -3,6 +3,7 @@ package kevin.com.firstline;
 import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import android.support.v7.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
 
 import org.litepal.crud.DataSupport;
 
@@ -22,11 +25,13 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
     private Context context;
 
     static class ViewHolder extends RecyclerView.ViewHolder {
+        CardView cardView;
         ImageView image;
         TextView desc;
 
         public ViewHolder(View view) {
             super(view);
+            cardView = (CardView)view;
             image = (ImageView)view.findViewById(R.id.fruit_image);
             desc = (TextView)view.findViewById(R.id.fruit_desc);
         }
@@ -85,7 +90,8 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Log.i(TAG, "onBindViewHolder: " + holder + "-" + position);
         Fruit f = fruits.get(position);
-        holder.image.setImageResource(f.getImageId());
+        //holder.image.setImageResource(f.getImageId());
+        Glide.with(context).load(f.getImageId()).into(holder.image);
         holder.desc.setText(f.getName() + "\n" + f.getDetail() + "\n" + f.getPrice() + "\n" + f.getFid());
     }
 

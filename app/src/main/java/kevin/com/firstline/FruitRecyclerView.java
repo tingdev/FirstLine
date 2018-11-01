@@ -16,7 +16,9 @@ import java.util.Random;
 public class FruitRecyclerView extends RecyclerView {
     private static final String TAG = "FruitRecyclerView";
     private FruitAdapter fa;
+    //LinearLayoutManager layoutManager;
     StaggeredGridLayoutManager layoutManager;
+    //GridLayoutManager layoutManager;
 
     public FruitRecyclerView(Context context) {
         super(context);
@@ -27,9 +29,11 @@ public class FruitRecyclerView extends RecyclerView {
         super(context, attrs);
         Log.i(TAG, "trace FruitRecyclerView: ctor with attrs");
         Fruits.init();
-        //LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        //layoutManager = new LinearLayoutManager(context);
         //layoutManager.setOrientation(HORIZONTAL);
+
         layoutManager = new StaggeredGridLayoutManager(3, VERTICAL);
+
         //GridLayoutManager  layoutManager = new GridLayoutManager(context, 3, VERTICAL, false);
 
         setLayoutManager(layoutManager);
@@ -49,7 +53,7 @@ public class FruitRecyclerView extends RecyclerView {
         Log.i(TAG, "findMax: " + max);
         return max;
     }
-
+/*
     private int findLastVisibleItemPosition() {
         int[] lastPositions = layoutManager.findLastVisibleItemPositions(null);
         Log.i(TAG, "findLastVisibleItemPosition: " + lastPositions);
@@ -58,7 +62,7 @@ public class FruitRecyclerView extends RecyclerView {
         }
         return findMax(lastPositions);
     }
-
+*/
     public void notifyItemInserted(int position) {
         fa.notifyItemInserted(position);
         //scrollToPosition(findLastVisibleItemPosition());
