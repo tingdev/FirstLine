@@ -28,7 +28,6 @@ public class FruitRecyclerView extends RecyclerView {
     public FruitRecyclerView(Context context, AttributeSet attrs) {
         super(context, attrs);
         Log.i(TAG, "trace FruitRecyclerView: ctor with attrs");
-        Fruits.init();
         //layoutManager = new LinearLayoutManager(context);
         //layoutManager.setOrientation(HORIZONTAL);
 

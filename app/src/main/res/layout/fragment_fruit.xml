@@ -6,10 +6,16 @@
     android:layout_height="match_parent"
     tools:context=".FruitFragment">
 
-    <kevin.com.firstline.FruitRecyclerView
-        android.id="@+id/recycler_view"
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+        <kevin.com.firstline.FruitRecyclerView
+            android.id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+    </android.support.v4.widget.SwipeRefreshLayout>
 </FrameLayout>

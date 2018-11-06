@@ -1,10 +1,14 @@
 package kevin.com.firstline;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Fruits {
     private static List<Fruit> fruits = new ArrayList<Fruit>();
+    private static final String TAG = "Fruits";
 
     public static void init() {
         fruits.clear();
@@ -22,5 +26,16 @@ public class Fruits {
 
     public static List<Fruit> getFruits() {
         return fruits;
+    }
+
+    public static void shuffle() {
+        int size = fruits.size();
+        Random r = new Random(System.currentTimeMillis());
+        for (int i = 0; i < size * 100; i++) {
+            int idx = r.nextInt(size);
+            Log.i(TAG, "shuffle: " + idx);
+            Fruit f = fruits.remove(idx);
+            fruits.add(f);
+        }
     }
 }

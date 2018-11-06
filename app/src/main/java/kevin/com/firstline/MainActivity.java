@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     }
 
     private void onAddFruit() {
-        int rand = new Random().nextInt(Fruits.getFruits().size());
+        int rand = new Random(System.currentTimeMillis()).nextInt(Fruits.getFruits().size());
         Fruit selected = Fruits.getFruits().get(rand);
 
         Fruit n = new Fruit(Fruits.getFruits().size(), selected.getImageId(), selected.getName(), selected.getDetail(), selected.getPrice());
@@ -322,6 +322,11 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         //i.putExtra("isLocal", true);
         //lbm.sendBroadcast(i);
 
+    }
+
+    public void refreshFruits() {
+        Fruits.shuffle();
+        frv.notifyDataSetChanged();
     }
 
     private void makeCall() {
@@ -355,7 +360,9 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     }
 
     private void openFuitsPage() {
+        Fruits.init();
         FruitFragment ff = new FruitFragment();
+        ff.setContext(this);
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, ff).addToBackStack(null).commit();
     }
 
