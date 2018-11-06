@@ -11,44 +11,28 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <LinearLayout
-            android:id="@+id/main_layout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            tools:context=".MainActivity">
+        <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:context=".MainActivity">
 
             <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:layout_scrollFlags="scroll|enterAlways|snap"/>
 
-            <TextView
-                android:visibility="gone"
-                android:id="@+id/sample_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/hello"
-                android:textColor="?attr/colorKevinBright" />
+        </android.support.design.widget.AppBarLayout>
 
-            <kevin.com.firstline.MyTitleLayout
-                android:visibility="gone"
-                android:id="@+id/mytitlelayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:kevin_flag="true" />
-
-            <kevin.com.firstline.FruitRecyclerView
-                android.id="@+id/recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:scrollbars="vertical" />
-
-        </LinearLayout>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#FFF"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:id="@+id/fragment_container"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/floating_action_button"

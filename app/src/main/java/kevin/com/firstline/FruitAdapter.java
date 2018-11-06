@@ -56,8 +56,7 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
                 //Toast.makeText(context, f.getName() + ", position " + pos + " clicked!", Toast.LENGTH_SHORT).show();
 
                 MainActivity ma = ((MainActivity)context);
-                ma.getSupportFragmentManager().beginTransaction().add(R.id.main_layout, new FruitDetailFragment(f)).addToBackStack(null).commit();
-
+                ma.getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FruitDetailFragment().setFruit(f)).addToBackStack(null).commit();
 
                 // DON'T rely on isSaved()!!!!!
                 // save() will change the id internally!!!!

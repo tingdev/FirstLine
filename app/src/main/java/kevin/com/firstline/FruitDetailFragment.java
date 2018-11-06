@@ -14,14 +14,18 @@ public class FruitDetailFragment extends Fragment {
 
     private Fruit f;
 
-    public FruitDetailFragment(Fruit f) {
-        this.f = f;
+    public FruitDetailFragment() {
+    }
+
+    public FruitDetailFragment setFruit(Fruit f) {
+        this.f =f;
+        return this;
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fruit_detail_frag, container, false);
+        View view = inflater.inflate(R.layout.fragment_fruit_detail, container, false);
         TextView tv = view.findViewById(R.id.f_title);
         tv.setText(f.getName());
 

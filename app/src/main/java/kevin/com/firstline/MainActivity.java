@@ -134,8 +134,10 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         setContentView(R.layout.activity_main);
 
         // Example of a call to a native method
-        TextView tv = (TextView) findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
+        String s = stringFromJNI();
+        Log.i(TAG, "onCreate: stringFromJNI " + s);
+        //TextView tv = (TextView) findViewById(R.id.sample_text);
+        //tv.setText(s);
 
         // ONLY for kevinTheme
         android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.toolbar);
@@ -192,6 +194,10 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                         openServiceTestPage();
                         drawerLayout.closeDrawers();
                         break;
+                    case R.id.nv_my_title:
+                        openMyTitlePage();
+                        drawerLayout.closeDrawers();
+                        break;
                 }
                 return false;
             }
@@ -227,6 +233,8 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         tryXmlParser();
         tryGsonParser();
         tryOkHttp();
+
+        openMainPage();
 
         Log.i("MainActivity", "my task id " + getTaskId());
         Log.i(TAG, "trace onCreate:  end");
@@ -341,20 +349,35 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         }
     }
 
+    private void openMainPage() {
+        openFuitsPage();
+        //openServiceTestPage();
+    }
+
+    private void openFuitsPage() {
+        FruitFragment ff = new FruitFragment();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, ff).addToBackStack(null).commit();
+    }
+
     private void openPlayAudioPage() {
         PlayAudioFragment paf = new PlayAudioFragment();
-        getSupportFragmentManager().beginTransaction().replace(R.id.main_layout, paf).addToBackStack(null).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, paf).addToBackStack(null).commit();
     }
 
     private void openWebPage() {
         WebViewFragment wvf = new WebViewFragment("https://www.sogou.com");
-        getSupportFragmentManager().beginTransaction().add(R.id.main_layout, wvf).addToBackStack(null).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, wvf).addToBackStack(null).commit();
     }
 
     private void openServiceTestPage() {
         ServiceTestFragment stf = new ServiceTestFragment();
         stf.setContext(this);
-        getSupportFragmentManager().beginTransaction().replace(R.id.main_layout, stf).addToBackStack(null).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, stf).addToBackStack(null).commit();
+    }
+
+    private void openMyTitlePage() {
+        MyTitleFragment mtf = new MyTitleFragment();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, mtf).addToBackStack(null).commit();
     }
 
     private void takePhoto() {
@@ -398,7 +421,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                             // This will cause 'Can not perform this action after onSaveInstanceState' error!
                             /*
                             Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
-                            getSupportFragmentManager().beginTransaction().replace(R.id.main_layout, new PhotoFragment().setPhoto(bitmap)).addToBackStack(null).commit();
+                            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new PhotoFragment().setPhoto(bitmap)).addToBackStack(null).commit();
                             */
 
                             showPhotoLater = true;
@@ -484,7 +507,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
     private void showContacts(List<Contact> list) {
         ContactsFragment f = new ContactsFragment(list);
-        getSupportFragmentManager().beginTransaction().add(R.id.main_layout, f).addToBackStack(null).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, f).addToBackStack(null).commit();
     }
 
     private void call(Uri uri) {
@@ -608,7 +631,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
     public void openBaiduMapPage() {
         BaiDuMapFragment bdmf = new BaiDuMapFragment(this);
-        getSupportFragmentManager().beginTransaction().replace(R.id.main_layout, bdmf).addToBackStack(null).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, bdmf).addToBackStack(null).commit();
     }
 
     private MapView mapview;
@@ -714,12 +737,26 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     }
 
     private void showPhoto(Bitmap bitmap) {
-        getSupportFragmentManager().beginTransaction().replace(R.id.main_layout, new PhotoFragment().setPhoto(bitmap)).addToBackStack(null).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new PhotoFragment().setPhoto(bitmap)).addToBackStack(null).commit();
     }
+
+    private long lastBackKeyTime = 0;
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+//        super.onBackPressed();
+        int stackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
+        if (stackEntryCount > 1) {
+            super.onBackPressed();
+            lastBackKeyTime = 0;
+        } else {
+            Log.i(TAG, "onBackPressed: ignored!" + stackEntryCount);
+            if ((lastBackKeyTime != 0) && (System.currentTimeMillis() - lastBackKeyTime < 500)) {
+                Log.w(TAG, "onBackPressed: Bye!");
+                finish();
+            }
+            lastBackKeyTime = System.currentTimeMillis();
+        }
     }
 
     @Override
