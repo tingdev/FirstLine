@@ -12,6 +12,10 @@
                     android:id="@+id/nv_add_fruit"
                     android:title="add fruit"
                     android:icon="@drawable/menu"/>
+                <item
+                    android:id="@+id/nv_delete_db_items"
+                    android:title="delete db items"
+                    android:icon="@drawable/menu"/>
             </menu>
         </item>
     </group>

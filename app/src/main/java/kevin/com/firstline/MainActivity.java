@@ -44,6 +44,7 @@ import android.widget.Toast;
 import com.baidu.mapapi.map.MapView;
 
 import org.litepal.LitePal;
+import org.litepal.crud.DataSupport;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
@@ -160,6 +161,10 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                         break;
                     case R.id.nv_add_fruit:
                         onAddFruit();
+                        break;
+                    case R.id.nv_delete_db_items:
+                        deleteDbItems();
+                        drawerLayout.closeDrawers();
                         break;
                     case R.id.nv_show_baidu_map:
                         navView.setCheckedItem(R.id.nv_show_baidu_map);
@@ -295,8 +300,6 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         Fruits.init();
         frv.notifyDataSetChanged();
 
-        LitePal.deleteDatabase("fruits");
-
         Intent i = new Intent("kevin.com.action.RESET_FRUIT");
         sendBroadcast(i, "com.kevin.permission.broadcast_send_from_specified_source");
     }
@@ -322,6 +325,15 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         //i.putExtra("isLocal", true);
         //lbm.sendBroadcast(i);
 
+    }
+
+    private void deleteDbItems() {
+        try {
+            //LitePal.deleteDatabase("fruits");
+            DataSupport.deleteAll("fruit", null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void refreshFruits() {
