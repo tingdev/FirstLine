@@ -1,7 +1,10 @@
 package kevin.com.firstline;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
+import android.media.Image;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.util.Log;
@@ -28,18 +31,24 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
         CardView cardView;
         ImageView image;
         TextView desc;
+        ImageView dot;
 
         public ViewHolder(View view) {
             super(view);
             cardView = (CardView)view;
             image = (ImageView)view.findViewById(R.id.fruit_image);
             desc = (TextView)view.findViewById(R.id.fruit_desc);
+            dot = (ImageView)view.findViewById(R.id.another_fruit_detail_view_prompt);
         }
     }
 
     public FruitAdapter(Context context, List<Fruit> fruits) {
         this.context = context;
         this.fruits = fruits;
+    }
+
+    private boolean isForAnotherDetailView(int fruitId) {
+        return (fruitId % 2 == 0);
     }
 
     @NonNull
@@ -55,8 +64,15 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
                 Fruit f = fruits.get(pos);
                 //Toast.makeText(context, f.getName() + ", position " + pos + " clicked!", Toast.LENGTH_SHORT).show();
 
-                MainActivity ma = ((MainActivity)context);
-                ma.getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FruitDetailFragment().setFruit(f)).addToBackStack(null).commit();
+                // just for fun! ('normal fragment' or 'collapsing tool bar')
+                if (isForAnotherDetailView(f.getFid())) {
+                    Intent intent = new Intent(context, AnotherFruitDetailActivity.class);
+                    intent.putExtra("item", f);
+                    context.startActivity(intent);
+                } else {
+                    MainActivity ma = ((MainActivity)context);
+                    ma.getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FruitDetailFragment().setFruit(f)).addToBackStack(null).commit();
+                }
 
                 // DON'T rely on isSaved()!!!!!
                 // save() will change the id internally!!!!
@@ -92,6 +108,11 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
         //holder.image.setImageResource(f.getImageId());
         Glide.with(context).load(f.getImageId()).into(holder.image);
         holder.desc.setText(f.getName() + "\n" + f.getDetail() + "\n" + f.getPrice() + "\n" + f.getFid());
+        if (isForAnotherDetailView(f.getFid())) {
+            holder.dot.setVisibility(View.VISIBLE);
+        } else {
+            holder.dot.setVisibility(View.INVISIBLE);
+        }
     }
 
     @Override

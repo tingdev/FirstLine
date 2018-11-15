@@ -1,8 +1,11 @@
 package kevin.com.firstline;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.litepal.crud.DataSupport;
 
-public class Fruit extends DataSupport {
+public class Fruit extends DataSupport implements Parcelable {
     //private int id;     //optional for litepal, if declared, used  as id in
 
     private int fid;
@@ -49,6 +52,40 @@ public class Fruit extends DataSupport {
 
     public double getPrice() {
         return price;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(fid);
+        dest.writeInt(imageId);
+        dest.writeString(name);
+        dest.writeString(detail);
+        dest.writeDouble(price);
+    }
+
+    public static final Parcelable.Creator<Fruit> CREATOR = new Parcelable.Creator<Fruit>() {
+        @Override
+        public Fruit createFromParcel(Parcel source) {
+            return new Fruit(source);
+        }
+
+        @Override
+        public Fruit[] newArray(int size) {
+            return new Fruit[size];
+        }
+    };
+
+    public Fruit(Parcel source) {
+        fid = source.readInt();
+        imageId = source.readInt();
+        name = source.readString();
+        detail = source.readString();
+        price = source.readDouble();
     }
 /*
     public int getId() {

@@ -39,7 +39,7 @@ public class FruitFragment extends Fragment {
                              Bundle savedInstanceState) {
         Log.i(TAG, "onCreateView: ");
         // Inflate the layout for this fragment
-        View v = inflater.inflate(R.layout.fragment_fruit, container, false);
+        View v = inflater.inflate(R.layout.fragment_fruits, container, false);
         final SwipeRefreshLayout swipeRefreshLayout = v.findViewById(R.id.swipe_refresh);
         swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {

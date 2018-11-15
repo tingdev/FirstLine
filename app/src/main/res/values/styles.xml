@@ -18,4 +18,8 @@
         <item name="colorKevinBright">@color/colorKevinGreenB</item>
     </style>
 
+    <style name="KevinTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="KevinTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
 </resources>
