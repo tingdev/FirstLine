@@ -359,7 +359,6 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                         refreshFruits();
                     }
                 });
-                ((AutoRefreshService.MyBinder) service).startRefresh();
             }
 
             @Override
@@ -367,8 +366,12 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
             }
         };
-        bindService(autoRefreshIntent, autoRefreshConn, BIND_AUTO_CREATE);
-        startService(autoRefreshIntent);
+        bindService(autoRefreshIntent, autoRefreshConn, BIND_AUTO_CREATE);  // this will trigger onBind and asynchronous onServiceConnected event(which will setup the callback)
+        startService(autoRefreshIntent);    // NOTE: startService will trigger onStartCommand,
+                                            // but since asynchronous onServiceConnected event may happen after
+                                            // onStartCommand, the callback has NOT been setup.
+                                            // so the first onStartCommand in the service will NOT trigger the callback.
+        refreshFruits();                    // first refresh is done here!
         Log.i(TAG, "startAutoRefreshService: ");
     }
 

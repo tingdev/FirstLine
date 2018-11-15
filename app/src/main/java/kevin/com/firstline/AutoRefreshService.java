@@ -41,10 +41,6 @@ public class AutoRefreshService extends Service {
         public AutoRefreshService getService() {
             return AutoRefreshService.this;
         }
-
-        public void startRefresh() {
-            triggerOnStartCommand(5000);
-        }
     }
 
     private Intent it;
