@@ -16,6 +16,14 @@
                     android:id="@+id/nv_delete_db_items"
                     android:title="delete db items"
                     android:icon="@drawable/menu"/>
+                <item
+                    android:id="@+id/nv_start_auto_refresh_service"
+                    android:title="start auto refresh"
+                    android:icon="@drawable/menu"/>
+                <item
+                    android:id="@+id/nv_stop_auto_refresh_service"
+                    android:title="stop auto refresh"
+                    android:icon="@drawable/menu"/>
             </menu>
         </item>
     </group>

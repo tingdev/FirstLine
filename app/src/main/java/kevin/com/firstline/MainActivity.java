@@ -69,7 +69,7 @@ import okhttp3.Response;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
-public class MainActivity extends AppCompatActivity  implements  ContactsFragment.OnFragmentInteractionListener{
+public class MainActivity extends AppCompatActivity  implements  ContactsFragment.OnFragmentInteractionListener {
     private static final String TAG = "MainActivity";
     private FruitRecyclerView frv;
 
@@ -164,6 +164,14 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                         break;
                     case R.id.nv_delete_db_items:
                         deleteDbItems();
+                        drawerLayout.closeDrawers();
+                        break;
+                    case R.id.nv_start_auto_refresh_service:
+                        startAutoRefreshService();
+                        drawerLayout.closeDrawers();
+                        break;
+                    case R.id.nv_stop_auto_refresh_service:
+                        stopAutoRefreshService();
                         drawerLayout.closeDrawers();
                         break;
                     case R.id.nv_show_baidu_map:
@@ -330,9 +338,48 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     private void deleteDbItems() {
         try {
             //LitePal.deleteDatabase("fruits");
-            DataSupport.deleteAll("fruit", null);
+            DataSupport.deleteAll("fruit",null);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private ServiceConnection autoRefreshConn;
+    private Intent autoRefreshIntent;
+    private void startAutoRefreshService() {
+        autoRefreshIntent = new Intent(this, AutoRefreshService.class);
+        autoRefreshConn = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                Log.i(TAG, "onServiceConnected: ");
+                AutoRefreshService s = ((AutoRefreshService.MyBinder)service).getService();
+                s.setAutoRefreshListener(new AutoRefreshService.OnAutoRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        refreshFruits();
+                    }
+                });
+                ((AutoRefreshService.MyBinder) service).startRefresh();
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+
+            }
+        };
+        bindService(autoRefreshIntent, autoRefreshConn, BIND_AUTO_CREATE);
+        startService(autoRefreshIntent);
+        Log.i(TAG, "startAutoRefreshService: ");
+    }
+
+    private void stopAutoRefreshService() {
+        if (autoRefreshIntent != null) {
+            stopService(autoRefreshIntent);
+            autoRefreshIntent = null;
+        }
+        if (autoRefreshConn != null) {
+            unbindService(autoRefreshConn);
+            autoRefreshConn = null;
         }
     }
 

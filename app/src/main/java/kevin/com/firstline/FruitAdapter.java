@@ -54,7 +54,7 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        Log.i(TAG, "onCreateViewHolder: " + parent);
+        //Log.i(TAG, "onCreateViewHolder: " + parent);
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.fruit, parent, false);
         final ViewHolder vh = new ViewHolder(v);
         vh.itemView.setOnClickListener(new View.OnClickListener() {
@@ -103,7 +103,7 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Log.i(TAG, "onBindViewHolder: " + holder + "-" + position);
+        //Log.i(TAG, "onBindViewHolder: " + holder + "-" + position);
         Fruit f = fruits.get(position);
         //holder.image.setImageResource(f.getImageId());
         Glide.with(context).load(f.getImageId()).into(holder.image);
