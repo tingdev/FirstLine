@@ -46,7 +46,8 @@
 
         <activity
             android:name=".MainActivity"
-            android:label="FirstLine Label">
+            android:label="FirstLine Label"
+            android:configChanges="screenSize|screenLayout|orientation|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

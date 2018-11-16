@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -876,6 +877,12 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     @Override
     public void onFragmentInteraction(Uri uri) {
         call(uri);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        Log.i(TAG, "onConfigurationChanged: " + newConfig);
+        super.onConfigurationChanged(newConfig);
     }
 
     /**
