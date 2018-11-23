@@ -15,6 +15,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.PersistableBundle;
@@ -32,14 +33,10 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.baidu.mapapi.map.MapView;
@@ -51,6 +48,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -307,8 +305,9 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
     private void onResetFruit() {
         Fruits.init();
-        frv.notifyDataSetChanged();
-
+        if (frv != null) {
+            frv.notifyDataSetChanged();
+        }
         Intent i = new Intent("kevin.com.action.RESET_FRUIT");
         sendBroadcast(i, "com.kevin.permission.broadcast_send_from_specified_source");
     }
@@ -320,7 +319,9 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         Fruit n = new Fruit(Fruits.getFruits().size(), selected.getImageId(), selected.getName(), selected.getDetail(), selected.getPrice());
         Fruits.getFruits().add(n);
 
-        frv.notifyItemInserted(Fruits.getFruits().size() - 1);
+        if (frv != null) {
+            frv.notifyItemInserted(Fruits.getFruits().size() - 1);
+        }
 
         // broadcast and ordered broadcast, local broadcast tests.
         Intent i = new Intent("kevin.com.action.ADD_FRUIT");
@@ -389,7 +390,9 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
 
     public void refreshFruits() {
         Fruits.shuffle();
-        frv.notifyDataSetChanged();
+        if (frv != null) {
+            frv.notifyDataSetChanged();
+        }
     }
 
     private void makeCall() {
@@ -425,7 +428,6 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     private void openFuitsPage() {
         Fruits.init();
         FruitFragment ff = new FruitFragment();
-        ff.setContext(this);
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, ff).addToBackStack(null).commit();
     }
 
@@ -576,7 +578,8 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     }
 
     private void showContacts(List<Contact> list) {
-        ContactsFragment f = new ContactsFragment(list);
+        ContactsFragment f = new ContactsFragment();
+        f.setList(list);
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, f).addToBackStack(null).commit();
     }
 
@@ -651,7 +654,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
                         }
                     }
                     if (allGranted) {
-                        startLocation();
+                        startLocation(mapViewWeakReference.get());
                     }
                 } else {
                     Log.w(TAG, "onRequestPermissionsResult: " + grantResults.length );
@@ -667,6 +670,10 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     public void onFruitRecyclerViewCreated(FruitRecyclerView v) {
         Log.i(TAG, "onFruitRecyclerViewCreated: " + v);
         frv = v;
+    }
+
+    public void onFruitFragmentDestroyView() {
+        frv = null;
     }
 
     private boolean requestLocationPermissions() {
@@ -691,25 +698,29 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
         return false;
     }
 
-    private void startLocation() {
-        MyLocation.getInstance(this).start(mapview.getMap());
+    private void startLocation(MapView mapView) {
+        MyLocation.getInstance().start(mapView.getMap());
     }
 
     private void stopLocation() {
-        MyLocation.getInstance(this).stop();
+        MyLocation.getInstance().stop();
     }
 
     public void openBaiduMapPage() {
-        BaiDuMapFragment bdmf = new BaiDuMapFragment(this);
+        BaiDuMapFragment bdmf = new BaiDuMapFragment();
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, bdmf).addToBackStack(null).commit();
     }
 
-    private MapView mapview;
-    public void onBaiDuMapViewCreated(MapView mv) {
-        this.mapview = mv;
+    private WeakReference<MapView> mapViewWeakReference;
+    public void onBaiDuMapViewCreated(MapView mapView) {
+        mapViewWeakReference = new WeakReference<>(mapView);
         if (!requestLocationPermissions()) {
-            startLocation();
+            startLocation(mapView);
         }
+    }
+
+    public void onBaiDuMapViewDestroy() {
+        stopLocation();
     }
 
     @Override
@@ -790,10 +801,6 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     protected void onResume() {
         super.onResume();
 
-        if (mapview != null) {
-            mapview.onResume();
-        }
-
         if (showPhotoLater) {
             try {
                 showPhoto(photoBitmap);
@@ -840,9 +847,6 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     protected void onPause() {
         super.onPause();
         Log.i(TAG, "onPause: ");
-        if (mapview != null) {
-            mapview.onPause();
-        }
     }
 
     @Override
@@ -855,11 +859,7 @@ public class MainActivity extends AppCompatActivity  implements  ContactsFragmen
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "onDestroy: ");
-        if (mapview != null) {
-            mapview.onDestroy();
-        }
-        stopLocation();
-
+        stopAutoRefreshService();
         unregisterReceiver(broadcastReceiver);
         unregisterReceiver(anotherReceiver);
         LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(broadcastReceiver);

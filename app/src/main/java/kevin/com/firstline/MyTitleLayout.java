@@ -21,11 +21,10 @@ import android.widget.LinearLayout;
 
 public class MyTitleLayout extends LinearLayout {
     static final String TAG = "MyTitleLayout";
-    Context context;
+
     public MyTitleLayout(final Context context, AttributeSet attrs) {
         super(context, attrs);
         Log.i(TAG, "MyTitleLayout: ");
-        this.context = context;
         boolean flag = attrs.getAttributeBooleanValue("http://schemas.android.com/apk/res-auto", "kevin_flag", false);
         Log.i(TAG, "MyTitleLayout: kevin flag " + flag);
         LayoutInflater.from(context).inflate(R.layout.custom_title, this);
@@ -54,7 +53,7 @@ public class MyTitleLayout extends LinearLayout {
         search.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                NotificationManager nm = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+                NotificationManager nm = (NotificationManager)MyApplication.getContext().getSystemService(Context.NOTIFICATION_SERVICE);
                 Intent intent = new Intent(context, NotificationContentDetailActivity.class);
                 //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);     // this flag is set dynamically, co-operate with 'taskAffinity', this activity would be in a new task stack
                 //PS: use 'adb shell dumpsys activity activities' to show the tasks and stacks

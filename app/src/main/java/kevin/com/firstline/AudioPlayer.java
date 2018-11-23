@@ -8,15 +8,15 @@ import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.widget.Button;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class AudioPlayer {
     private static final String TAG = "AudioPlayer";
-    private MediaPlayer audioPlayer = new MediaPlayer();
+    private MediaPlayer audioPlayer;
     private int audioDuration;
     private int currentBeforeStop;
 
@@ -33,6 +33,9 @@ public class AudioPlayer {
 
     private AudioPlayer(Context context) {
         this.context = context;
+        if (audioPlayer == null) {
+            audioPlayer = new MediaPlayer();
+        }
     }
 
     public static AudioPlayer getInstance(Context context) {
@@ -46,7 +49,15 @@ public class AudioPlayer {
         this.listener = listener;
     }
 
-    class playAudioProgressTask extends AsyncTask<Integer, Integer, Boolean> {
+    private static class PlayAudioProgressTask extends AsyncTask<Integer, Integer, Boolean> {
+
+        private WeakReference<Listener> listenerWeakReference;
+        private WeakReference<MediaPlayer> audioPlayerWeakReference;
+
+        public PlayAudioProgressTask(MediaPlayer player, Listener listener) {
+            listenerWeakReference = new WeakReference<>(listener);
+            audioPlayerWeakReference = new WeakReference<>(player);
+        }
 
         @Override
         protected void onPreExecute() {
@@ -56,7 +67,10 @@ public class AudioPlayer {
         @Override
         protected void onProgressUpdate(Integer... values) {
             Log.i(TAG, "onProgressUpdate: " + values[0]);
-            listener.onProgress(values[0], values[1]);
+            Listener listener = listenerWeakReference.get();
+            if (listener != null) {
+                listener.onProgress(values[0], values[1]);
+            }
         }
 
         @Override
@@ -65,8 +79,8 @@ public class AudioPlayer {
 //            pgb.setMax(max);
             //SystemClock.sleep(100);
             int save = 0;
-            while (audioPlayer.isPlaying()) {
-                int current = audioPlayer.getCurrentPosition();
+            while (!isCancelled() && audioPlayerWeakReference.get() != null && audioPlayerWeakReference.get().isPlaying()) {
+                int current = audioPlayerWeakReference.get().getCurrentPosition();
                 if ((current % 100 == 0) && current > save) {
                     onProgressUpdate(current, max);
                     save = current;
@@ -106,6 +120,8 @@ public class AudioPlayer {
         }
     }
 
+    private AsyncTask<Integer, Integer, Boolean> progressTask;
+
     public void togglePlayAudio() {
         if (audioPlayer.isPlaying()) {
             currentBeforeStop = audioPlayer.getCurrentPosition();
@@ -122,7 +138,8 @@ public class AudioPlayer {
             audioPlayer.start();
             audioDuration = audioPlayer.getDuration();
             currentBeforeStop = audioDuration;      // in case user doesn't STOP actively(i.e. STOP due to play end).
-            new playAudioProgressTask().execute(audioDuration);
+            progressTask = new PlayAudioProgressTask(audioPlayer, listener);
+            progressTask.execute(audioDuration);
             listener.onStart(audioDuration);
         } catch (Exception e) {
             e.printStackTrace();
@@ -130,6 +147,15 @@ public class AudioPlayer {
     }
 
     public void release() {
-        audioPlayer.release();
+        if (progressTask != null) {
+            progressTask.cancel(true);
+        }
+        if (audioPlayer != null) {
+            audioPlayer.release();
+        }
+        // audioPlayer = null;
+        context = null;       // unreference activity here!
+        listener = null;
+        instance = null;
     }
 }

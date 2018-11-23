@@ -1,55 +1,45 @@
 package kevin.com.firstline;
 
-import android.content.Context;
 import android.util.Log;
 
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
-import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
-import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
 
 public class MyLocation {
 
     private static final String TAG = "MyLocation";
-    private static MyLocation m;
-    private Context context;
-    private static LocationClient mClient;
+    private static MyLocation instance;
+    private LocationClient mClient;
     private BaiduMap map;
-    private boolean isFirstTime;
+    private boolean isFirstTime = true;
 
-    private MyLocation(Context context) {
-        this.context = context;
+    private MyLocation() {
     }
 
-    public synchronized static MyLocation getInstance(Context context) {
-        if (m == null) {
-            m = new MyLocation(context);
-            mClient = new LocationClient(context.getApplicationContext());
-            LocationClientOption option = new LocationClientOption();
-            option.setScanSpan(5000);
-            option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
-            option.setCoorType("bd09ll");       // this is vary important! to coordinated MUST be transformed.
-            mClient.setLocOption(option);
+    public synchronized static MyLocation getInstance() {
+        if (instance == null) {
+            instance = new MyLocation();
         }
-        return m;
+        return instance;
     }
 
     private void navigateTo(BaiduMap map, BDLocation location) {
         if (isFirstTime) {
-            map.animateMapStatus(MapStatusUpdateFactory.zoomTo(19f));
+            map.setTrafficEnabled(true);
+            map.setMapStatus(MapStatusUpdateFactory.zoomTo(18));
             isFirstTime = false;
         }
 
         if (location.getLocType() == BDLocation.TypeGpsLocation
                 || location.getLocType() == BDLocation.TypeNetWorkLocation) {
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-            map.animateMapStatus(MapStatusUpdateFactory.newLatLng(latLng));
+            map.setMapStatus(MapStatusUpdateFactory.newLatLng(latLng));
 
             MyLocationData.Builder builder = new MyLocationData.Builder();
             MyLocationData data = builder
@@ -63,6 +53,11 @@ public class MyLocation {
 
     public void start(final BaiduMap map) {
         this.map = map;
+        mClient = new LocationClient(MyApplication.getContext());
+        LocationClientOption options = new LocationClientOption();
+        options.setOpenGps(true);
+        options.setCoorType("bd09ll");
+        mClient.setLocOption(options);
         mClient.registerLocationListener(new BDAbstractLocationListener() {
             @Override
             public void onReceiveLocation(BDLocation bdLocation) {
@@ -77,9 +72,11 @@ public class MyLocation {
     public void stop() {
         if (map != null) {
             map.setMyLocationEnabled(false);
+            map = null;
         }
         if (mClient != null) {
             mClient.stop();
+            mClient = null;
         }
         Log.i(TAG, "stop: ");
     }

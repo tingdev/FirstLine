@@ -126,5 +126,4 @@ public class ServiceTestFragment extends Fragment {
         Log.i(TAG, "onClick: unbindService");
     }
 
-
 }

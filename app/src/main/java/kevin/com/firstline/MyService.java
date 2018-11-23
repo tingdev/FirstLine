@@ -91,7 +91,7 @@ public class MyService extends Service {
             NotificationChannel nc = new NotificationChannel(channelId, "ForgServiceChannelId", NotificationManager.IMPORTANCE_HIGH);
             nc.enableLights(true);
             nc.setLightColor(Color.BLUE);
-            NotificationManager nm = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+            NotificationManager nm = (NotificationManager)MyApplication.getContext().getSystemService(NOTIFICATION_SERVICE);
             nm.createNotificationChannel(nc);
         }
 

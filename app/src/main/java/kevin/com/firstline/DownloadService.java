@@ -12,7 +12,6 @@ import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -119,7 +118,7 @@ public class DownloadService extends Service implements DownloadInterface {
     }
 
     private void prepare() {
-        nm = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        nm = (NotificationManager)MyApplication.getContext().getSystemService(NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel nc = new NotificationChannel(channelId, "DownloadNotificationChannel", NotificationManager.IMPORTANCE_DEFAULT);
             nm.createNotificationChannel(nc);

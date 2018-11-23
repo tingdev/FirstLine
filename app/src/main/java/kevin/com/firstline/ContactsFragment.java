@@ -25,12 +25,11 @@ import java.util.List;
  */
 public class ContactsFragment extends Fragment {
 
-    private Context context;
     private List<Contact> contacts = new ArrayList<Contact>();
 
     private OnFragmentInteractionListener mListener;
 
-    public ContactsFragment(List<Contact> list) {
+    public void setList(List<Contact> list) {
         this.contacts = list;
     }
 

@@ -2,11 +2,9 @@ package kevin.com.firstline;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.media.Image;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,18 +12,17 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import android.support.v7.widget.RecyclerView;
-
 import com.bumptech.glide.Glide;
 
 import org.litepal.crud.DataSupport;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> {
     private static final String TAG = "FruitAdapter";
     private List<Fruit> fruits;
-    private Context context;
+    private WeakReference<Context> contextWeakReference;
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         CardView cardView;
@@ -43,7 +40,7 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
     }
 
     public FruitAdapter(Context context, List<Fruit> fruits) {
-        this.context = context;
+        this.contextWeakReference = new WeakReference<>(context);
         this.fruits = fruits;
     }
 
@@ -66,11 +63,11 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
 
                 // just for fun! ('normal fragment' or 'collapsing tool bar')
                 if (isForAnotherDetailView(f.getFid())) {
-                    Intent intent = new Intent(context, AnotherFruitDetailActivity.class);
+                    Intent intent = new Intent(contextWeakReference.get(), AnotherFruitDetailActivity.class);
                     intent.putExtra("item", f);
-                    context.startActivity(intent);
+                    contextWeakReference.get().startActivity(intent);
                 } else {
-                    MainActivity ma = ((MainActivity)context);
+                    MainActivity ma = ((MainActivity)contextWeakReference.get());
                     ma.getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new FruitDetailFragment().setFruit(f)).addToBackStack(null).commit();
                 }
 
@@ -106,7 +103,7 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
         //Log.i(TAG, "onBindViewHolder: " + holder + "-" + position);
         Fruit f = fruits.get(position);
         //holder.image.setImageResource(f.getImageId());
-        Glide.with(context).load(f.getImageId()).into(holder.image);
+        Glide.with(contextWeakReference.get()).load(f.getImageId()).into(holder.image);
         holder.desc.setText(f.getName() + "\n" + f.getDetail() + "\n" + f.getPrice() + "\n" + f.getFid());
         if (isForAnotherDetailView(f.getFid())) {
             holder.dot.setVisibility(View.VISIBLE);
@@ -124,4 +121,6 @@ public class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> 
     public int getItemCount() {
         return fruits.size();
     }
+
+
 }

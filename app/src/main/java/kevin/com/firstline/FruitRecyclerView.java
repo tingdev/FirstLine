@@ -1,17 +1,10 @@
 package kevin.com.firstline;
 
-import android.app.Activity;
 import android.content.Context;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-
-import java.util.Random;
 
 public class FruitRecyclerView extends RecyclerView {
     private static final String TAG = "FruitRecyclerView";

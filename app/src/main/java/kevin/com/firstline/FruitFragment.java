@@ -18,14 +18,9 @@ import android.view.ViewGroup;
  */
 public class FruitFragment extends Fragment {
     private static final String TAG = "FruitFragment";
-    private Context context;
 
     public FruitFragment() {
         // Required empty public constructor
-    }
-
-    public void setContext(Context context) {
-        this.context = context;
     }
 
     @Override
@@ -37,6 +32,7 @@ public class FruitFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        final Context context = getContext();
         Log.i(TAG, "onCreateView: ");
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_fruits, container, false);
@@ -48,7 +44,7 @@ public class FruitFragment extends Fragment {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        SystemClock.sleep(1000);
+                        SystemClock.sleep(500); // just want to see the loading progress.
                         ((MainActivity)context).runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -103,6 +99,8 @@ public class FruitFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        Context context = getContext();
+        ((MainActivity)context).onFruitFragmentDestroyView();
         Log.i(TAG, "onDestroyView: ");
     }
 
